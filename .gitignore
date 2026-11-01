@@ -1,0 +1,9 @@
+build/
+*.o
+*.d
+*.a
+/hello
+compile_commands.json
+.cache/
+*.dat
+*.png
