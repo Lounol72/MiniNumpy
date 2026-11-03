@@ -2,7 +2,8 @@ build/
 *.o
 *.d
 *.a
-/hello
+/main
+/main_test
 compile_commands.json
 .cache/
 *.dat
