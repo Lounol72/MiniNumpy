@@ -6,3 +6,4 @@ build/
 /main_test
 compile_commands.json
 .cache/
+*.pdf
