@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <ostream>
 #include <stdexcept>
 #include <vector>
@@ -12,6 +13,28 @@ public:
 
   double norme() const;
   Vector normalisation() const;
+
+  double scalaire_analytique(const Vector &x) const {
+    if (this->size() != x.size())
+      throw std::invalid_argument(
+          "Les deux vecteurs ne sont pas de la même taille");
+    double res = 0;
+    for (int i = 0; i < static_cast<int>(x.size()); i++) {
+      res += this->m_eles[i] * x.m_eles[i];
+    }
+    return res;
+  }
+  double scalaire_geometrique(const Vector &x) const {
+    if (this->size() != x.size())
+      throw std::invalid_argument(
+          "Les deux vecteurs ne sont pas de la même taille");
+    double res = 0;
+    double angle = 0;
+    double normes_mult = this->norme() * x.norme();
+    angle = this->scalaire_analytique(x) / (normes_mult);
+    res = normes_mult* std::acos(angle);
+    return res;
+  }
 
   /// Operators
   Vector &operator+=(const Vector &x) {
@@ -32,10 +55,10 @@ public:
   /// unary Operators
   Vector operator+() const;
   Vector operator-() const;
-  
+
   friend Vector operator/(Vector x, const double &a) {
-    for(int i = 0; i < static_cast<int>(x.size()) ; i++)
-      x.m_eles[i] /=a;
+    for (int i = 0; i < static_cast<int>(x.size()); i++)
+      x.m_eles[i] /= a;
     return x;
   }
   friend Vector operator/(const double &a, Vector x) { return x / a; }
