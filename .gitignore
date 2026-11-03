@@ -6,5 +6,3 @@ build/
 /main_test
 compile_commands.json
 .cache/
-*.dat
-*.png

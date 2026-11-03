@@ -32,5 +32,8 @@ vector.o: src/Vector.cpp
 clean:
 		rm -f *.o $(TARGET) $(TARGET_TEST)
 
+doc:
+	latexmk -pdf -cd -outdir=. -auxdir=build docs/carnet/carnet_maths.tex
+
 .PHONY : all clean test
 
