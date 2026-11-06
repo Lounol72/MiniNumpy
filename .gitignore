@@ -2,8 +2,8 @@ build/
 *.o
 *.d
 *.a
+/main_*
 /main
-/main_test
 compile_commands.json
 .cache/
 *.pdf
