@@ -158,7 +158,18 @@
     frame=single,
     tabsize=4,
     captionpos=b,
-    columns=fullflexible
+    columns=fullflexible,
+    literate=
+        {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1
+        {à}{{\`a}}1 {â}{{\^a}}1 {ä}{{\"a}}1
+        {î}{{\^i}}1 {ï}{{\"i}}1
+        {ô}{{\^o}}1 {ö}{{\"o}}1
+        {ù}{{\`u}}1 {û}{{\^u}}1 {ü}{{\"u}}1
+        {ç}{{\c{c}}}1 {œ}{{\oe}}1 {æ}{{\ae}}1
+        {É}{{\'E}}1 {È}{{\`E}}1 {Ê}{{\^E}}1 {À}{{\`A}}1
+        {Ç}{{\c{C}}}1 {Œ}{{\OE}}1
+        {«}{{\guillemotleft}}1 {»}{{\guillemotright}}1
+        {°}{{\textdegree}}1 {€}{{\texteuro}}1
 }
 
 \lstset{style=mystyle}
@@ -343,25 +354,242 @@ est construite :
 
 \chapter{Les vecteurs}
 
-\section{Introduction}
+\section{Définition}
 
-Un vecteur est un objet mathématique caractérisé
-par une direction, un sens et une norme.
-
-\section{Exemples de formules}
-
-On peut facilement insérer des formules
-mathématiques comme :
-
+\begin{definition}[Vecteur]
+Soit $n \in \N^*$. Un \emph{vecteur} de dimension $n$
+est un $n$-uplet de réels, c'est-à-dire un élément
+de $\R^n$ :
 \[
-    E = mc^2
+    \vect{u} = \begin{pmatrix} u_1 \\ u_2 \\ \vdots \\ u_n \end{pmatrix},
+    \qquad u_i \in \R \text{ pour tout } i \in \{1, \dots, n\}.
+\]
+Les réels $u_i$ sont les \emph{composantes} de
+$\vect{u}$, et $n$ est sa \emph{dimension}
+(son nombre de composantes).
+\end{definition}
+
+\begin{remark}
+L'exposant de $\R^n$ est la dimension $n$, fixée
+pour un vecteur donné. L'indice $i$, lui, parcourt
+les composantes de $1$ à $n$.
+\end{remark}
+
+\begin{definition}[Vecteur nul]
+Le vecteur nul de $\R^n$ est
+$\vect{0} = (0, \dots, 0)^\top$ : toutes ses
+composantes valent $0$.
+\end{definition}
+
+Dans toute la suite, $\vect{u}$ et $\vect{v}$ sont
+deux vecteurs de $\R^n$ et $k \in \R$ est un réel.
+
+\section{Opérations}
+
+\subsection{Addition et soustraction}
+
+\begin{definition}
+Pour deux vecteurs \textbf{de même dimension} $n$ :
+\[
+    \vect{u} + \vect{v} =
+    \begin{pmatrix} u_1 + v_1 \\ \vdots \\ u_n + v_n \end{pmatrix},
+    \qquad
+    \vect{u} - \vect{v} =
+    \begin{pmatrix} u_1 - v_1 \\ \vdots \\ u_n - v_n \end{pmatrix}.
+\]
+\end{definition}
+
+\begin{importantbox}
+La somme d'un vecteur de $\R^n$ et d'un vecteur de
+$\R^m$ avec $n \neq m$ n'est pas définie.
+\end{importantbox}
+
+\subsection{Multiplication par un réel}
+
+\begin{definition}
+\[
+    k \vect{u} =
+    \begin{pmatrix} k u_1 \\ \vdots \\ k u_n \end{pmatrix}.
+\]
+La division par un réel $k \neq 0$ est la
+multiplication par $\frac{1}{k}$ :
+$\dfrac{\vect{u}}{k} = \dfrac{1}{k}\,\vect{u}$.
+\end{definition}
+
+\subsection{Produit scalaire}
+
+\begin{definition}[Forme analytique]
+Pour deux vecteurs de même dimension :
+\[
+    \vect{u} \cdot \vect{v} = \sum_{i=1}^{n} u_i v_i
+    = u_1 v_1 + u_2 v_2 + \dots + u_n v_n.
+\]
+Le résultat est un \textbf{réel}, pas un vecteur.
+\end{definition}
+
+\begin{proposition}[Forme géométrique]
+Si $\vect{u}$ et $\vect{v}$ sont non nuls, et si
+$\theta \in [0, \pi]$ est l'angle entre eux :
+\[
+    \vect{u} \cdot \vect{v}
+    = \norm{\vect{u}}\,\norm{\vect{v}} \cos\theta.
+\]
+\end{proposition}
+
+\begin{remark}
+Les deux formes donnent le \emph{même} nombre. En
+pratique, on calcule le produit scalaire par la forme
+analytique, puis on s'en sert pour trouver l'angle :
+\[
+    \cos\theta =
+    \frac{\vect{u} \cdot \vect{v}}{\norm{\vect{u}}\,\norm{\vect{v}}}
+    \quad\text{donc}\quad
+    \theta = \arccos\!\left(
+    \frac{\vect{u} \cdot \vect{v}}{\norm{\vect{u}}\,\norm{\vect{v}}}
+    \right).
+\]
+Si $\vect{u} \cdot \vect{v} = 0$, les vecteurs
+sont \emph{orthogonaux} ($\theta = \frac{\pi}{2}$).
+\end{remark}
+
+\subsection{Norme}
+
+\begin{definition}[Norme euclidienne]
+\[
+    \norm{\vect{u}} = \sqrt{\vect{u} \cdot \vect{u}}
+    = \sqrt{\sum_{i=1}^{n} u_i^2}.
+\]
+C'est la longueur du vecteur. Elle est toujours
+positive, et nulle seulement pour $\vect{u} = \vect{0}$.
+\end{definition}
+
+\subsection{Normalisation}
+
+\begin{definition}
+Pour $\vect{u} \neq \vect{0}$, le vecteur normalisé
+(ou unitaire) de $\vect{u}$ est
+\[
+    \hat{\vect{u}} = \frac{1}{\norm{\vect{u}}}\,\vect{u}.
+\]
+Il a la même direction et le même sens que
+$\vect{u}$, et sa norme vaut $1$.
+\end{definition}
+
+\begin{importantbox}
+Le vecteur nul ne peut pas être normalisé : on
+diviserait par $\norm{\vect{0}} = 0$.
+\end{importantbox}
+
+\section{Exemples calculés à la main}
+
+Tous les exemples utilisent les deux vecteurs de $\R^3$
+\[
+    \vect{u} = \begin{pmatrix} 1 \\ 2 \\ 2 \end{pmatrix},
+    \qquad
+    \vect{v} = \begin{pmatrix} 2 \\ -2 \\ 1 \end{pmatrix}.
 \]
 
-Ou une formule centrée :
-
+\begin{example}[Addition et soustraction]
 \[
-    \int_0^1 x^2 \, dx = \frac{1}{3}
+    \vect{u} + \vect{v} =
+    \begin{pmatrix} 1 + 2 \\ 2 + (-2) \\ 2 + 1 \end{pmatrix}
+    = \begin{pmatrix} 3 \\ 0 \\ 3 \end{pmatrix},
+    \qquad
+    \vect{u} - \vect{v} =
+    \begin{pmatrix} 1 - 2 \\ 2 - (-2) \\ 2 - 1 \end{pmatrix}
+    = \begin{pmatrix} -1 \\ 4 \\ 1 \end{pmatrix}.
 \]
+\end{example}
+
+\begin{example}[Multiplication et division par un réel]
+Avec $k = 2$ :
+\[
+    2\vect{u} =
+    \begin{pmatrix} 2 \times 1 \\ 2 \times 2 \\ 2 \times 2 \end{pmatrix}
+    = \begin{pmatrix} 2 \\ 4 \\ 4 \end{pmatrix},
+    \qquad
+    \frac{\vect{u}}{2} =
+    \begin{pmatrix} 0{,}5 \\ 1 \\ 1 \end{pmatrix}.
+\]
+\end{example}
+
+\begin{example}[Produit scalaire analytique]
+\[
+    \vect{u} \cdot \vect{v}
+    = 1 \times 2 + 2 \times (-2) + 2 \times 1
+    = 2 - 4 + 2 = 0.
+\]
+Les vecteurs $\vect{u}$ et $\vect{v}$ sont donc
+orthogonaux.
+\end{example}
+
+\begin{example}[Norme]
+\[
+    \norm{\vect{u}} = \sqrt{1^2 + 2^2 + 2^2}
+    = \sqrt{9} = 3,
+    \qquad
+    \norm{\vect{v}} = \sqrt{2^2 + (-2)^2 + 1^2}
+    = \sqrt{9} = 3.
+\]
+\end{example}
+
+\begin{example}[Produit scalaire géométrique et angle]
+Pour $\vect{u}$ et $\vect{v}$ :
+\[
+    \cos\theta = \frac{0}{3 \times 3} = 0
+    \quad\text{donc}\quad
+    \theta = \frac{\pi}{2},
+\]
+ce qui confirme l'orthogonalité trouvée plus haut.
+
+Pour un cas où l'angle n'est pas droit, prenons
+$\vect{a} = (1, 0)^\top$ et $\vect{b} = (1, 1)^\top$
+dans $\R^2$ : $\vect{a} \cdot \vect{b} = 1$,
+$\norm{\vect{a}} = 1$ et $\norm{\vect{b}} = \sqrt{2}$, donc
+\[
+    \cos\theta = \frac{1}{1 \times \sqrt{2}} = \frac{\sqrt{2}}{2}
+    \quad\text{donc}\quad
+    \theta = \frac{\pi}{4}.
+\]
+On vérifie la forme géométrique :
+$\norm{\vect{a}}\,\norm{\vect{b}}\cos\theta
+= 1 \times \sqrt{2} \times \frac{\sqrt{2}}{2} = 1
+= \vect{a} \cdot \vect{b}$.
+\end{example}
+
+\begin{example}[Normalisation]
+\[
+    \hat{\vect{u}} = \frac{1}{3}\begin{pmatrix} 1 \\ 2 \\ 2 \end{pmatrix}
+    = \begin{pmatrix} 1/3 \\ 2/3 \\ 2/3 \end{pmatrix},
+    \qquad
+    \norm{\hat{\vect{u}}}
+    = \sqrt{\tfrac{1}{9} + \tfrac{4}{9} + \tfrac{4}{9}} = 1.
+\]
+\end{example}
+
+\begin{example}[Cas d'erreur]
+\begin{itemize}
+    \item $(1, 2)^\top + (1, 2, 3)^\top$ n'est pas défini :
+          les dimensions sont $2$ et $3$.
+    \item $\vect{0} \in \R^3$ ne se normalise pas,
+          car $\norm{\vect{0}} = 0$.
+\end{itemize}
+\end{example}
+
+\section{Utilité dans le projet}
+
+Un neurone reçoit des entrées $\vect{x} \in \R^n$,
+possède un poids par entrée, rangés dans
+$\vect{w} \in \R^n$, et un biais $b \in \R$. Sa sortie,
+avant la fonction d'activation, est
+\[
+    z = \vect{w} \cdot \vect{x} + b.
+\]
+Le produit scalaire est donc le calcul de base de
+tout le réseau. La condition « même dimension »
+correspond à une exigence concrète : il faut autant de
+poids que d'entrées.
+
 
 \section{Implémentation}
 
@@ -369,14 +597,14 @@ Ou une formule centrée :
 Voici un exemple d'implémentation en C++20.
 \end{codebox}
 
-\begin{lstlisting}[language=C++,caption=Exemple de vecteur]
-#include <vector>
-
-int main() {
-    std::vector<double> v = {1.0, 2.0, 3.0};
-    return 0;
-}
-\end{lstlisting}
+\lstinputlisting[
+language=C++,
+caption=Code d'implémentation de la fonction membre "normalisation",
+firstline=12,
+lastline=23,
+numbers=left,
+breaklines=true
+]{../../src/Vector.cpp}
 
 % =================================================
 % BIBLIOGRAPHIE

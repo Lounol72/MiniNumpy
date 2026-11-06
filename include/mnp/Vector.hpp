@@ -29,10 +29,10 @@ public:
       throw std::invalid_argument(
           "Les deux vecteurs ne sont pas de la même taille");
     double res = 0;
-    double angle = 0;
+
     double normes_mult = this->norme() * x.norme();
-    angle = this->scalaire_analytique(x) / (normes_mult);
-    res = normes_mult* std::acos(angle);
+    double angle = this->scalaire_analytique(x) / (normes_mult);
+    res = normes_mult * std::acos(angle);
     return res;
   }
 
@@ -43,6 +43,15 @@ public:
           "Les deux vecteurs ne sont pas de la même taille");
     for (int i = 0; i < static_cast<int>(this->size()); i++) {
       m_eles[i] += x.m_eles.at(i);
+    }
+    return *this;
+  }
+  Vector &operator-=(const Vector &x) {
+    if (this->size() != x.size())
+      throw std::invalid_argument(
+          "Les deux vecteurs ne sont pas de la même taille");
+    for (int i = 0; i < static_cast<int>(this->size()); i++) {
+      m_eles[i] -= x.m_eles.at(i);
     }
     return *this;
   }
@@ -70,7 +79,16 @@ public:
   }
   friend Vector operator*(const double &a, Vector x) { return x * a; }
 
-  bool operator==(const Vector &a) const = default;
+  bool operator==(const Vector &a) const {
+    if (this->size() != a.size())
+      throw std::invalid_argument(
+          "Les deux vecteurs ne sont pas de la même taille");
+    for (int i = 0; i < static_cast<int>(a.size()); i++)
+      if (std::fabs(a.m_eles[i] - this->m_eles[i]) >= 1e-9)
+        return false;
+    return true;
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const Vector &v) {
     os << "{";
     for (double eles : v.m_eles)
@@ -80,12 +98,12 @@ public:
     return os;
   }
   double &operator[](int index) {
-    if (index < 0 || index > static_cast<int>(m_eles.size()))
+    if (index < 0 || index >= static_cast<int>(m_eles.size()))
       throw std::invalid_argument("L'index est introuvable dans le vecteur");
     return m_eles[index];
   }
   double operator[](int index) const {
-    if (index < 0 || index > static_cast<int>(m_eles.size()))
+    if (index < 0 || index >= static_cast<int>(m_eles.size()))
       throw std::invalid_argument("L'index est introuvable dans le vecteur");
     return m_eles[index];
   }
