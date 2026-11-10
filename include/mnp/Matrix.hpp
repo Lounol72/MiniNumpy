@@ -6,17 +6,65 @@
 namespace mnp {
 class Matrix {
 public:
+  // ========================================================================
+  // Constructors
+  // ========================================================================
+  /**
+   * @brief Create a matrix of size(i,j)
+   *
+   * @param i int : number of lines
+   * @param j int : number of cols
+   */
   explicit Matrix(const int i, const int j)
       : ligne(i), colonne(j), m_values(i * j, 0.0) {}
 
+  /**
+   * @brief Create a matrix from a vector of vector of double
+   *
+   * @param vect vector<vector<double>> values of the matrix
+   */
   explicit Matrix(std::vector<std::vector<double>> &vect)
       : ligne(vect.size()), colonne(vect[0].size()),
         m_values(colonne * ligne, 0.0) {
     for (int i = 0; i < static_cast<int>(vect.size()); i++)
       for (int j = 0; j < static_cast<int>(vect.size()); j++) {
-        m_values.push_back(vect[i][j]);
+        m_values[(i * ligne) + j] = vect[i][j];
       }
   }
+
+  bool isSquare() { return ligne == colonne; }
+  bool isZero() {
+    return std::all_of(m_values.begin(), m_values.end(),
+                       [](int x) { return x == 0; });
+  }
+
+  bool isIndentity() {
+    if (!isSquare())
+      return false;
+    if (m_values[0] != 1)
+      return false;
+
+    for (int index = 1; index < static_cast<int>(m_values.size()); index++) {
+      if (((index / ligne) == (index % ligne)) && m_values[index] != 1)
+        return false;
+      else if (m_values[index] != 0)
+        return false;
+    }
+    return true;
+  }
+  
+  Matrix transpose() const {
+    Matrix m(this->colonne, this->ligne);
+    for (int i = 0; i < static_cast<int>(this->colonne * this->ligne); i++) {
+      m.m_values[(i % this->colonne) * this->ligne + (i / this->colonne)] =
+          this->m_values[i];
+    }
+    return m;
+  }
+
+  // ========================================================================
+  // Operators
+  // ========================================================================
 
   /**
    * @brief Get the value of (i,j) in the matrix
@@ -43,24 +91,6 @@ public:
       throw std::invalid_argument("Error: invalid index not in matrix");
     return m_values.at(i * colonne + j);
   }
-  bool isSquare() { return ligne == colonne; }
-  bool isZero() {
-    return std::all_of(m_values.begin(), m_values.end(),
-                       [](int x) { return x == 0; });
-  }
-
-  bool isIndentity() {
-    if (!isSquare())
-      return false;
-
-    for (int index = 0; index < static_cast<int>(m_values.size()); index++) {
-      if (((index / ligne) == (index % ligne)) && m_values[index] != 1)
-        return false;
-      else if (m_values[index] != 0)
-        return false;
-    }
-    return true;
-  }
 
   // binary operators
   Matrix &operator+=(const Matrix &other) {
@@ -72,6 +102,7 @@ public:
     }
     return *this;
   }
+
   Matrix &operator-=(const Matrix &other) {
     if (this->ligne != other.ligne || this->colonne != other.colonne)
       throw std::invalid_argument(
@@ -81,6 +112,7 @@ public:
     }
     return *this;
   }
+
   friend Matrix operator+(Matrix lhs, const Matrix &rhs) { return lhs += rhs; }
   friend Matrix operator-(Matrix lhs, const Matrix &rhs) { return lhs -= rhs; }
 
@@ -116,6 +148,7 @@ public:
     }
     return *this;
   }
+
   bool operator==(const Matrix &m) const {
     if (this->ligne != m.ligne || this->colonne != m.colonne)
       throw std::invalid_argument(
