@@ -1,6 +1,9 @@
 #pragma once
 
+#define PRECISION 1e-9
+
 #include <algorithm>
+#include <cmath>
 #include <stdexcept>
 #include <vector>
 namespace mnp {
@@ -32,27 +35,26 @@ public:
       }
   }
 
-  bool isSquare() { return ligne == colonne; }
-  bool isZero() {
+  bool isSquare() const { return ligne == colonne; }
+  bool isZero() const {
     return std::all_of(m_values.begin(), m_values.end(),
-                       [](int x) { return x == 0; });
+                       [](int x) { return std::fabs(x) >= PRECISION; });
   }
 
-  bool isIndentity() {
+  bool isIndentity() const {
     if (!isSquare())
       return false;
-    if (m_values[0] != 1)
-      return false;
 
-    for (int index = 1; index < static_cast<int>(m_values.size()); index++) {
-      if (((index / ligne) == (index % ligne)) && m_values[index] != 1)
-        return false;
-      else if (m_values[index] != 0)
+    for (int index = 0; index < static_cast<int>(m_values.size()); index++) {
+      if (((index / colonne) == (index % colonne))) {
+        if (std::fabs(1.0 - this->m_values[index]) >= PRECISION)
+          return false;
+      } else if (std::fabs(this->m_values[index]) >= PRECISION)
         return false;
     }
     return true;
   }
-  
+
   Matrix transpose() const {
     Matrix m(this->colonne, this->ligne);
     for (int i = 0; i < static_cast<int>(this->colonne * this->ligne); i++) {
@@ -120,6 +122,7 @@ public:
     if (this->colonne != other.ligne)
       throw std::invalid_argument(
           "Error: Cannot substract 2 matrices of different size");
+
     Matrix res(this->ligne, other.colonne);
     for (int index = 0; index < (this->ligne * other.colonne); index++) {
       double res_sum = 0;
@@ -130,6 +133,26 @@ public:
             );
       }
       res.m_values[index] = res_sum;
+    }
+    return res;
+  }
+
+  friend Matrix operator*(const Matrix &m, const std::vector<double> &vect) {
+    if (m.colonne != static_cast<int>(vect.size()))
+      throw std::invalid_argument(
+          "Error: Cannot multiply a matrix by a vector if the size of the "
+          "vector is not equal to the matrix j");
+    
+    Matrix res(m.colonne, 1);
+    for (int i = 0; i < (m.ligne); i++) {
+
+      double res_sum = 0;
+      for (int index = 0; index < m.ligne; index++) {
+        res_sum += (m.m_values[i + (res.ligne * (index / res.ligne))] // Ligne
+                    * vect.at(index % m.ligne)                        // Vecteur
+        );
+      }
+      res.m_values[i] = res_sum;
     }
     return res;
   }
@@ -154,7 +177,7 @@ public:
       throw std::invalid_argument(
           "Error: Cannot compare 2 matrices of different size");
     for (int i = 0; i < static_cast<int>(m_values.size()); i++)
-      if (m_values.at(i) != m.m_values.at(i))
+      if (std::fabs(m_values.at(i) - m.m_values.at(i)) >= PRECISION)
         return false;
     return true;
   }
