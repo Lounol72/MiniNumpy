@@ -34,6 +34,15 @@ public:
         m_values[(i * ligne) + j] = vect[i][j];
       }
   }
+  static Matrix identity(const int n) {
+    Matrix m(n, n);
+    for (int i = 0; i < (n * n); i++) {
+      if ((i / n) == (i % n)) {
+        m.m_values[i] = 1.0;
+      }
+    }
+    return m;
+  }
 
   bool isSquare() const { return ligne == colonne; }
   bool isZero() const {
@@ -142,7 +151,7 @@ public:
       throw std::invalid_argument(
           "Error: Cannot multiply a matrix by a vector if the size of the "
           "vector is not equal to the matrix j");
-    
+
     Matrix res(m.colonne, 1);
     for (int i = 0; i < (m.ligne); i++) {
 
