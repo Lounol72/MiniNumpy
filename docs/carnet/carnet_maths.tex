@@ -297,11 +297,11 @@ est construite :
           neurone calcule un produit scalaire entre
           ses entrées et ses poids.
     \item \textbf{Matrices.} Stockage, accès aux
-          coefficients et transposée. Les poids
-          d'une couche entière forment une matrice.
-    \item \textbf{Produit matriciel.} Il calcule en
-          une seule opération la sortie de tous les
-          neurones d'une couche, pour tout un lot
+          coefficients, transposée et produit
+          matriciel. Les poids d'une couche entière
+          forment une matrice, et un seul produit
+          matriciel calcule la sortie de tous les
+          neurones de la couche, pour tout un lot
           d'images.
     \item \textbf{Broadcasting.} La règle qui permet
           d'additionner un vecteur à chaque ligne
@@ -605,6 +605,284 @@ lastline=23,
 numbers=left,
 breaklines=true
 ]{../../src/Vector.cpp}
+
+\newpage
+
+\chapter{Les matrices}
+
+\section{Définition}
+
+\begin{definition}[Matrice]
+Soient $m \in \N^*$ et $n \in \N^*$. Une
+\emph{matrice} à $m$ lignes et $n$ colonnes est un
+tableau rectangulaire de $m \times n$ réels : il y a
+$m$ lignes, et chaque ligne contient $n$ éléments.
+\[
+    A =
+    \begin{pmatrix}
+        a_{11} & a_{12} & \cdots & a_{1n} \\
+        a_{21} & a_{22} & \cdots & a_{2n} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        a_{m1} & a_{m2} & \cdots & a_{mn}
+    \end{pmatrix},
+    \qquad a_{ij} \in \R.
+\]
+Le réel $a_{ij}$ est le \emph{coefficient} de la
+ligne $i$ et de la colonne $j$. On note aussi
+$A = (a_{ij})_{1 \le i \le m,\, 1 \le j \le n}$.
+L'ensemble des matrices à $m$ lignes et $n$ colonnes
+est noté $\R^{m \times n}$, et le couple $(m, n)$
+est la \emph{taille} de $A$.
+\end{definition}
+
+\begin{remark}
+On donne toujours le nombre de lignes \emph{avant}
+le nombre de colonnes, aussi bien pour la taille
+$m \times n$ que pour l'indice $a_{ij}$. Une matrice
+$2 \times 3$ et une matrice $3 \times 2$ ne sont pas
+de la même taille.
+\end{remark}
+
+\begin{definition}[Lignes et colonnes]
+Pour $A \in \R^{m \times n}$ :
+\begin{itemize}
+    \item la \emph{ligne} $i$ de $A$ est
+          $(a_{i1}, a_{i2}, \dots, a_{in})$ : elle a
+          $n$ éléments ;
+    \item la \emph{colonne} $j$ de $A$ est
+          $(a_{1j}, a_{2j}, \dots, a_{mj})^\top$ :
+          elle a $m$ éléments.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Égalité]
+Deux matrices $A$ et $B$ sont égales si elles ont
+\textbf{la même taille} et si $a_{ij} = b_{ij}$ pour
+tous $i$ et $j$.
+\end{definition}
+
+\section{Matrices particulières}
+
+\begin{definition}[Matrice carrée]
+Une matrice est \emph{carrée} si elle a autant de
+lignes que de colonnes ($m = n$). Ses coefficients
+$a_{11}, a_{22}, \dots, a_{nn}$ forment sa
+\emph{diagonale}.
+\end{definition}
+
+\begin{definition}[Matrice nulle]
+La matrice nulle de $\R^{m \times n}$, notée $0$
+(ou $0_{m,n}$), a tous ses coefficients égaux à $0$.
+\end{definition}
+
+\begin{definition}[Matrice identité]
+La matrice identité $I_n \in \R^{n \times n}$ est la
+matrice carrée qui a des $1$ sur la diagonale et des
+$0$ partout ailleurs :
+\[
+    I_n =
+    \begin{pmatrix}
+        1 & 0 & \cdots & 0 \\
+        0 & 1 & \cdots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        0 & 0 & \cdots & 1
+    \end{pmatrix},
+    \qquad
+    (I_n)_{ij} =
+    \begin{cases}
+        1 & \text{si } i = j, \\
+        0 & \text{sinon.}
+    \end{cases}
+\]
+\end{definition}
+
+\begin{remark}
+Un vecteur $\vect{x} \in \R^n$ peut être vu comme une
+matrice à $n$ lignes et une seule colonne, c'est-à-dire
+un élément de $\R^{n \times 1}$. C'est cohérent avec la
+convention de ce carnet : les vecteurs sont des
+vecteurs colonnes.
+\end{remark}
+
+Dans toute la suite, $A$ et $B$ sont deux matrices
+de $\R^{m \times n}$ et $k \in \R$ est un réel.
+
+\section{Opérations}
+
+\subsection{Addition et soustraction}
+
+\begin{definition}
+Pour deux matrices \textbf{de même taille}, on
+additionne (ou soustrait) coefficient par
+coefficient :
+\[
+    (A + B)_{ij} = a_{ij} + b_{ij},
+    \qquad
+    (A - B)_{ij} = a_{ij} - b_{ij}.
+\]
+Le résultat est encore une matrice de
+$\R^{m \times n}$.
+\end{definition}
+
+\begin{importantbox}
+La somme de deux matrices de tailles différentes
+n'est pas définie, même si elles ont le même nombre
+total de coefficients (par exemple une $2 \times 3$
+et une $3 \times 2$).
+\end{importantbox}
+
+\subsection{Multiplication par un réel}
+
+\begin{definition}
+\[
+    (kA)_{ij} = k\, a_{ij}.
+\]
+Chaque coefficient est multiplié par $k$. Comme pour
+les vecteurs, la division par un réel $k \neq 0$ est
+la multiplication par $\frac{1}{k}$.
+\end{definition}
+
+\subsection{Transposée}
+
+\begin{definition}[Transposée]
+La \emph{transposée} de $A \in \R^{m \times n}$ est
+la matrice $A^\top \in \R^{n \times m}$ définie par
+\[
+    (A^\top)_{ij} = a_{ji}.
+\]
+Les lignes de $A$ deviennent les colonnes de
+$A^\top$, et inversement.
+\end{definition}
+
+\begin{importantbox}
+La transposée échange les dimensions : si $A$ a
+$m$ lignes et $n$ colonnes, $A^\top$ a $n$ lignes et
+$m$ colonnes. Elle ne garde la même taille que pour
+une matrice carrée.
+\end{importantbox}
+
+\begin{proposition}
+Pour $A, B \in \R^{m \times n}$ et $k \in \R$ :
+\begin{enumerate}
+    \item $(A^\top)^\top = A$ ;
+    \item $(A + B)^\top = A^\top + B^\top$ ;
+    \item $(kA)^\top = k\, A^\top$.
+\end{enumerate}
+\end{proposition}
+
+\begin{definition}[Matrice symétrique]
+Une matrice carrée $A$ est \emph{symétrique} si
+$A^\top = A$, c'est-à-dire si $a_{ij} = a_{ji}$ pour
+tous $i$ et $j$. Par exemple, $I_n$ est symétrique.
+\end{definition}
+
+\subsection{Produit de Hadamard}
+
+\begin{definition}[Produit terme à terme]
+Le \emph{produit de Hadamard} de deux matrices
+\textbf{de même taille} est la matrice
+$A \odot B \in \R^{m \times n}$ définie par
+\[
+    (A \odot B)_{ij} = a_{ij}\, b_{ij}.
+\]
+\end{definition}
+
+\begin{importantbox}
+Ce n'est \emph{pas} le produit matriciel défini
+ci-dessous. Attention à NumPy : l'opérateur
+\texttt{*} y calcule $A \odot B$, et c'est
+\texttt{@} (ou \texttt{np.dot}) qui calcule $AB$.
+\end{importantbox}
+
+\subsection{Produit matriciel}
+
+\begin{definition}[Produit matriciel]
+Soient $A \in \R^{m \times n}$ et
+$B \in \R^{n \times p}$. Le \emph{produit}
+$AB \in \R^{m \times p}$ est défini par
+\[
+    (AB)_{ij} = \sum_{k=1}^{n} a_{ik}\, b_{kj}
+    = a_{i1} b_{1j} + a_{i2} b_{2j} + \dots + a_{in} b_{nj}.
+\]
+Le coefficient $(AB)_{ij}$ est le produit scalaire
+de la ligne $i$ de $A$ et de la colonne $j$ de $B$.
+\end{definition}
+
+\begin{importantbox}
+Le produit $AB$ n'existe que si le nombre de
+\textbf{colonnes} de $A$ est égal au nombre de
+\textbf{lignes} de $B$ :
+\[
+    \underbrace{(m \times n)}_{A}
+    \cdot
+    \underbrace{(n \times p)}_{B}
+    = \underbrace{(m \times p)}_{AB}.
+\]
+Les deux dimensions « intérieures » doivent être
+égales, et les deux dimensions « extérieures » donnent
+la taille du résultat.
+\end{importantbox}
+
+\begin{proposition}
+Pour des matrices dont les tailles rendent les
+produits possibles, et pour $k \in \R$ :
+\begin{enumerate}
+    \item associativité : $(AB)C = A(BC)$ ;
+    \item distributivité : $A(B + C) = AB + AC$ et
+          $(A + B)C = AC + BC$ ;
+    \item $(kA)B = A(kB) = k(AB)$ ;
+    \item élément neutre : pour
+          $A \in \R^{m \times n}$,
+          $I_m A = A I_n = A$ ;
+    \item transposée d'un produit :
+          $(AB)^\top = B^\top A^\top$.
+\end{enumerate}
+\end{proposition}
+
+\begin{importantbox}
+Le produit matriciel n'est \textbf{pas commutatif} :
+en général $AB \neq BA$. Même quand les deux
+produits existent, ils peuvent ne pas avoir la même
+taille, et même quand $A$ et $B$ sont carrées, ils
+sont en général différents.
+\end{importantbox}
+
+\subsection{Produit d'une matrice par un vecteur}
+
+\begin{definition}
+Soient $A \in \R^{m \times n}$ et $\vect{x} \in \R^n$.
+En voyant $\vect{x}$ comme une matrice de
+$\R^{n \times 1}$, le produit $A\vect{x}$ est un
+vecteur de $\R^m$ :
+\[
+    (A\vect{x})_i = \sum_{k=1}^{n} a_{ik}\, x_k,
+    \qquad i \in \{1, \dots, m\}.
+\]
+La composante $i$ de $A\vect{x}$ est le produit
+scalaire de la ligne $i$ de $A$ avec $\vect{x}$.
+\end{definition}
+
+\begin{remark}
+Le produit scalaire est lui-même un produit
+matriciel : pour $\vect{u}, \vect{v} \in \R^n$,
+$\vect{u}^\top \in \R^{1 \times n}$ et
+$\vect{v} \in \R^{n \times 1}$, donc
+$\vect{u}^\top \vect{v} \in \R^{1 \times 1}$ est la
+matrice qui contient le réel
+$\vect{u} \cdot \vect{v}$.
+\end{remark}
+
+\subsection{Trace}
+
+\begin{definition}[Trace]
+La \emph{trace} d'une matrice carrée
+$A \in \R^{n \times n}$ est la somme de ses
+coefficients diagonaux :
+\[
+    \operatorname{tr}(A) = \sum_{i=1}^{n} a_{ii}.
+\]
+Par exemple, $\operatorname{tr}(I_n) = n$.
+\end{definition}
 
 % =================================================
 % BIBLIOGRAPHIE

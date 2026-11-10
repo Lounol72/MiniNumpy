@@ -4,6 +4,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "doctest/doctest.h"
+#include "mnp/Matrix.hpp"
 #include "mnp/Vector.hpp"
 #include "mnp/version.hpp"
 
@@ -57,8 +58,25 @@ TEST_CASE("Vérifications des opérations vectorielles : produit scalaire, "
   CHECK_MESSAGE((normes_mult * std::acos(angle)) ==
                     doctest::Approx(11.21383518f).epsilon(1e-5),
                 "L'angle n'est pas correct");
-  CHECK_MESSAGE(((std::acos(angle)) >= 0.0f),
+  CHECK_MESSAGE(((std::acos(angle)) >= 0.0f), "L'angle n'est pas correct");
+  CHECK_MESSAGE(((std::acos(angle)) <= std::numbers::pi),
                 "L'angle n'est pas correct");
-   CHECK_MESSAGE((( std::acos(angle)) <= std::numbers::pi),
-                "L'angle n'est pas correct");
+}
+
+TEST_CASE("Vérifications des matrices") {
+  mnp::Matrix a(3, 3);
+  mnp::Matrix b(1, 3);
+  mnp::Matrix c(3, 3);
+  SUBCASE("Remplissage des matrices") {
+    a(0, 0) = 1;
+    c(0, 0) = 1;
+    CHECK_MESSAGE(a == c, "Le remplissage de matrices ne fonctionnes pas");
+    CHECK_THROWS_AS(a == b, std::invalid_argument);
+  }
+  SUBCASE("Produit Matriciel") {
+    for (int i = 0; i < 3 * 3; i++) {
+      a(i % a.nbLignes(), i % a.nbColonne()) = i;
+      c(i % c.nbLignes(), i % c.nbColonne()) = i;
+    }
+  }
 }
