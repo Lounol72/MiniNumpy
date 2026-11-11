@@ -28,11 +28,10 @@ public:
     if (this->size() != x.size())
       throw std::invalid_argument(
           "Les deux vecteurs ne sont pas de la même taille");
-    double res = 0;
 
     double normes_mult = this->norme() * x.norme();
-    double angle = this->scalaire_analytique(x) / (normes_mult);
-    res = normes_mult * std::acos(angle);
+    double angle = std::acos(this->scalaire_analytique(x) / (normes_mult));
+    double res = normes_mult * std::cos(angle);
     return res;
   }
 
@@ -70,7 +69,11 @@ public:
       x.m_eles[i] /= a;
     return x;
   }
-  friend Vector operator/(const double &a, Vector x) { return x / a; }
+  friend Vector operator/(const double &a, Vector x) {
+    for (int i = 0; i < static_cast<int>(x.size()); i++)
+      x.m_eles[i] = a / x.m_eles[i];
+    return x;
+  }
 
   friend Vector operator*(Vector x, const double &a) {
     for (int i = 0; i < static_cast<int>(x.size()); i++)

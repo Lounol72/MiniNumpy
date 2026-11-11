@@ -30,10 +30,17 @@ public:
       : ligne(vect.size()), colonne(vect[0].size()),
         m_values(colonne * ligne, 0.0) {
     for (int i = 0; i < static_cast<int>(vect.size()); i++)
-      for (int j = 0; j < static_cast<int>(vect.size()); j++) {
-        m_values[(i * ligne) + j] = vect[i][j];
+      for (int j = 0; j < static_cast<int>(vect[i].size()); j++) {
+        m_values[(i * colonne) + j] = vect[i][j];
       }
   }
+
+  /**
+   * @brief Generates an indentity matrix of size n
+   *
+   * @param n int size of matrix
+   * @return Matrix square of size n
+   */
   static Matrix identity(const int n) {
     Matrix m(n, n);
     for (int i = 0; i < (n * n); i++) {
@@ -44,13 +51,29 @@ public:
     return m;
   }
 
+  /**
+   * @brief Check if the matrix is square (size of : n * n )
+   *
+   * @return bool
+   */
   bool isSquare() const { return ligne == colonne; }
+  /**
+   * @brief check if the matrix is filled by zeros
+   *
+   * @return bool
+   */
   bool isZero() const {
     return std::all_of(m_values.begin(), m_values.end(),
-                       [](int x) { return std::fabs(x) >= PRECISION; });
+                       [](double x) { return !(std::fabs(x) >= PRECISION); });
   }
 
+  /**
+   * @brief Check if the matrix is an identity matrix
+   *
+   * @return bool
+   */
   bool isIndentity() const {
+    // if not square it can't be an identity
     if (!isSquare())
       return false;
 
@@ -64,6 +87,11 @@ public:
     return true;
   }
 
+  /**
+   * @brief transpose the Matrix from (i,j) -> (j,i)
+   *
+   * @return M^t
+   */
   Matrix transpose() const {
     Matrix m(this->colonne, this->ligne);
     for (int i = 0; i < static_cast<int>(this->colonne * this->ligne); i++) {
@@ -133,13 +161,14 @@ public:
           "Error: Cannot substract 2 matrices of different size");
 
     Matrix res(this->ligne, other.colonne);
-    for (int index = 0; index < (this->ligne * other.colonne); index++) {
+    for (int index = 0; index < (res.ligne * res.colonne); index++) {
       double res_sum = 0;
-      for (int i = 0; i < this->ligne; i++) {
-        res_sum +=
-            (this->m_values[(i * res.ligne) + (index % res.ligne)]   // Colonne
-             * other.m_values[i + (res.ligne * (index / res.ligne))] // Ligne
-            );
+      for (int i = 0; i < this->colonne; i++) {
+        res_sum += (this->m_values[(i + this->colonne *
+                                            (index / res.colonne))] // Ligne
+                    * other.m_values[(i * other.colonne) +
+                                     (index % res.colonne)] // Colonne
+        );
       }
       res.m_values[index] = res_sum;
     }
@@ -152,13 +181,13 @@ public:
           "Error: Cannot multiply a matrix by a vector if the size of the "
           "vector is not equal to the matrix j");
 
-    Matrix res(m.colonne, 1);
-    for (int i = 0; i < (m.ligne); i++) {
+    Matrix res(m.ligne, 1);
+    for (int i = 0; i < (res.ligne); i++) {
 
       double res_sum = 0;
-      for (int index = 0; index < m.ligne; index++) {
-        res_sum += (m.m_values[i + (res.ligne * (index / res.ligne))] // Ligne
-                    * vect.at(index % m.ligne)                        // Vecteur
+      for (int index = 0; index < m.colonne; index++) {
+        res_sum += (m.m_values[index + (m.colonne * (i / res.colonne))] // Ligne
+                    * vect.at(index % static_cast<int>(vect.size()))  // Vecteur
         );
       }
       res.m_values[i] = res_sum;
@@ -167,18 +196,14 @@ public:
   }
 
   // unary Operators
-  Matrix &operator+() {
-    for (int index = 0; index < static_cast<int>(m_values.size()); index++) {
-      this->m_values[index] = this->m_values[index];
-    }
-    return *this;
-  }
+  Matrix operator+() { return *this; }
 
-  Matrix &operator-() {
+  Matrix operator-() {
+    Matrix m(ligne, colonne);
     for (int index = 0; index < static_cast<int>(m_values.size()); index++) {
-      this->m_values[index] = this->m_values[index] * -1;
+      m.m_values[index] = this->m_values[index] * -1.0f;
     }
-    return *this;
+    return m;
   }
 
   bool operator==(const Matrix &m) const {
@@ -190,8 +215,8 @@ public:
         return false;
     return true;
   }
-  bool nbLignes() const { return ligne; }
-  bool nbColonne() const { return colonne; }
+  int nbLignes() const { return ligne; }
+  int nbColonne() const { return colonne; }
 
 private:
   const int ligne;
