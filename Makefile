@@ -21,6 +21,9 @@ DEPS = $(wildcard *.d)
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -g -fsanitize=address,undefined -MMD -MP
 
+$(BIN_DIR) $(TEST_BIN_DIR) $(TEST_OBJ_DIR):
+	@mkdir -p $@
+
 all: $(TARGET) $(TARGET_TEST)  $(TARGET_VECTEUR)
 
 test: $(TARGET_TEST)
@@ -41,15 +44,15 @@ $(TARGET_VECTEUR): main_vector.o Vector.o
 	@echo "Compilation de $@"
 	@$(CXX) $(CXXFLAGS) $^ -o $@
 
-%.o: $(TEST_DIR)/%.cpp
+$(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
 	@echo "Compilation de $@"
 	@$(CXX) $(CXXFLAGS) -I $(THIRDPARTY_DIR) -I $(INCLUDE_DIR) -c $< -o $@
 
-%.o: $(APP_DIR)/%.cpp
+$(BUILD_DIR)/%.o: $(APP_DIR)/%.cpp
 	@echo "Compilation de $@"
 	@$(CXX) $(CXXFLAGS) -I $(THIRDPARTY_DIR) -I $(INCLUDE_DIR) -c $< -o $@
 
-%.o: $(SRC_DIR)/%.cpp
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@echo "Compilation de $@"
 	@$(CXX) $(CXXFLAGS)  -I $(INCLUDE_DIR) -c $< -o $@
 
