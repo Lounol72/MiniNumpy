@@ -10,6 +10,7 @@ THIRDPARTY_DIR = third_party
 TARGET = main
 TARGET_VECTEUR = main_vector
 TARGET_TEST = main_tests
+TARGET_MATRIX = main_matrix
 
 # Fichiers source et objets
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
@@ -19,9 +20,10 @@ DEPS = $(wildcard $(BUILD_DIR)/*.d)
 
 # Tests source et objets
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -g -fsanitize=address,undefined -MMD -MP
+MODEFLAGS ?= -g -fsanitize=address,undefined
+CXXFLAGS = -std=c++20 -Wall -Wextra -Werror $(MODEFLAGS) -MMD -MP
 
-EXES = $(TARGET) $(TARGET_VECTEUR) $(TARGET_TEST)
+EXES = $(TARGET) $(TARGET_VECTEUR) $(TARGET_TEST) $(TARGET_MATRIX)
 LIB = $(BUILD_DIR)/libmnp.a
 
 all: $(EXES)

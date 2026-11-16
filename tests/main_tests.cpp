@@ -369,3 +369,103 @@ TEST_CASE("Matrice : produit matrice × vecteur (rectangulaire)") {
   std::vector<double> mauvais = {1, 2};
   CHECK_THROWS_AS(a * mauvais, std::invalid_argument);
 }
+
+TEST_CASE("Matrice : affichage <<") {
+  SUBCASE("colonnes alignées sur le nombre le plus long") {
+    // largeur = 7 ("333.000" et "-22.500"), plus l'espace devant chaque nombre
+    std::ostringstream os;
+    os << fabriquer({{1, -22.5}, {333, 0}});
+    CHECK(os.str() == "[[   1.000 -22.500]\n"
+                      " [ 333.000   0.000]]");
+  }
+
+  SUBCASE("matrice 2x3 de même largeur") {
+    std::ostringstream os;
+    os << fabriquer({{1, 2, 3}, {4, 5, 6}});
+    CHECK(os.str() == "[[ 1.000 2.000 3.000]\n"
+                      " [ 4.000 5.000 6.000]]");
+  }
+
+  SUBCASE("cas limites : 1x1 et vecteur colonne") {
+    std::ostringstream os;
+    os << fabriquer({{7}});
+    CHECK(os.str() == "[[ 7.000]]");
+
+    std::ostringstream col;
+    col << fabriquer({{1}, {-10}});
+    CHECK(col.str() == "[[   1.000]\n"
+                       " [ -10.000]]");
+  }
+
+  SUBCASE("l'état du flux est restauré après l'affichage") {
+    std::ostringstream os;
+    const auto precision_avant = os.precision();
+    const auto flags_avant = os.flags();
+    os << fabriquer({{1, 2}, {3, 4}});
+    CHECK_MESSAGE(os.precision() == precision_avant,
+                  "operator<< doit restaurer la précision du flux");
+    CHECK_MESSAGE(os.flags() == flags_avant,
+                  "operator<< doit restaurer les flags (fixed...)");
+
+    std::ostringstream pi;
+    pi << fabriquer({{1}}) << '|' << 3.14159265358979;
+    CHECK_MESSAGE(pi.str() == "[[ 1.000]]|3.14159",
+                  "un double écrit après une matrice garde le format par "
+                  "défaut");
+  }
+}
+
+TEST_CASE("Matrice : produit i,k,j (operator*) == produit i,j,k") {
+  SUBCASE("non carrées : (2x3) * (3x4)") {
+    mnp::Matrix a = fabriquer({{1, -2, 3}, {0.5, 4, -1}});
+    mnp::Matrix b = fabriquer(
+        {{2, 0, 1, -3}, {1, 1, 0, 2}, {-1, 5, 2, 0.25}});
+    CHECK(a * b == fabriquer({{-3, 13, 7, -6.25}, {6, -1, -1.5, 6.25}}));
+    CHECK_MESSAGE(a * b == a.produit_ijk(b),
+                  "Les deux ordres de boucles doivent donner le même résultat");
+  }
+
+  SUBCASE("rectangulaires plus grandes : (7x5) * (5x9)") {
+    mnp::Matrix a(7, 5);
+    mnp::Matrix b(5, 9);
+    for (int i = 0; i < 7; i++)
+      for (int j = 0; j < 5; j++)
+        a(i, j) = (i * 3 + j * 7) % 11 - 5;
+    for (int i = 0; i < 5; i++)
+      for (int j = 0; j < 9; j++)
+        b(i, j) = (i * 5 + j * 2) % 13 - 6;
+    CHECK(a * b == a.produit_ijk(b));
+  }
+
+  SUBCASE("dimensions incompatibles : les deux versions lèvent une exception") {
+    mnp::Matrix a(2, 3);
+    CHECK_THROWS_AS(a * a, std::invalid_argument);
+    CHECK_THROWS_AS(a.produit_ijk(a), std::invalid_argument);
+  }
+}
+
+TEST_CASE("Matrice : constructeur vector<vector<double>>, entrées invalides") {
+  SUBCASE("lignes de longueurs différentes") {
+    CHECK_THROWS_AS(mnp::Matrix({{1, 2}, {3}}), std::invalid_argument);
+    CHECK_THROWS_AS(mnp::Matrix({{1}, {2, 3}}), std::invalid_argument);
+    CHECK_THROWS_AS(mnp::Matrix({{1, 2, 3}, {4, 5, 6}, {7, 8}}),
+                    std::invalid_argument);
+  }
+  SUBCASE("matrice vide") {
+    CHECK_THROWS_AS(mnp::Matrix(std::vector<std::vector<double>>{}),
+                    std::invalid_argument);
+    CHECK_THROWS_AS(mnp::Matrix({{}}), std::invalid_argument);
+  }
+}
+
+TEST_CASE("Matrice : constructeur depuis une liste écrite directement") {
+  mnp::Matrix m({{1, 2, 3}, {4, 5, 6}}); // possible grâce au const &
+  CHECK(m.nbLignes() == 2);
+  CHECK(m.nbColonne() == 3);
+  CHECK(m == fabriquer({{1, 2, 3}, {4, 5, 6}}));
+
+  mnp::Matrix colonne({{1}, {2}, {3}}); // 3x1 : l'ancien cas « NB »
+  CHECK(colonne.nbLignes() == 3);
+  CHECK(colonne.nbColonne() == 1);
+  CHECK(colonne(2, 0) == 3);
+}

@@ -1,9 +1,13 @@
 #pragma once
 
+#include <cstddef>
 #define PRECISION 1e-9
-
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
+#include <ios>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 namespace mnp {
@@ -26,13 +30,19 @@ public:
    *
    * @param vect vector<vector<double>> values of the matrix
    */
-  explicit Matrix(std::vector<std::vector<double>> &vect)
-      : ligne(vect.size()), colonne(vect[0].size()),
+  explicit Matrix(const std::vector<std::vector<double>> &vect)
+      : ligne(vect.size()), colonne(vect.empty() ? 0 : vect[0].size()),
         m_values(colonne * ligne, 0.0) {
-    for (int i = 0; i < static_cast<int>(vect.size()); i++)
+    if (colonne == 0 || ligne == 0) {
+      throw std::invalid_argument("Vecteur de la mauvaise taille");
+    }
+    for (int i = 0; i < static_cast<int>(vect.size()); i++) {
+      if (static_cast<int>(vect[i].size()) != colonne)
+        throw std::invalid_argument("Vecteur de la mauvaise taille");
       for (int j = 0; j < static_cast<int>(vect[i].size()); j++) {
         m_values[(i * colonne) + j] = vect[i][j];
       }
+    }
   }
 
   /**
@@ -155,10 +165,17 @@ public:
   friend Matrix operator+(Matrix lhs, const Matrix &rhs) { return lhs += rhs; }
   friend Matrix operator-(Matrix lhs, const Matrix &rhs) { return lhs -= rhs; }
 
-  Matrix operator*(const Matrix &other) const {
+  /**
+   * @brief Produit matriciel, ordre de boucles i, j, k (ancienne version)
+   *
+   * Calcule chaque case du résultat d'un coup : dans la boucle intérieure,
+   * on lit B colonne par colonne (sauts de other.colonne en mémoire).
+   * Gardée pour comparer les temps avec operator*.
+   */
+  Matrix produit_ijk(const Matrix &other) const {
     if (this->colonne != other.ligne)
       throw std::invalid_argument(
-          "Error: Cannot substract 2 matrices of different size");
+          "Error: cannot multiply, columns of A != lines of B");
 
     Matrix res(this->ligne, other.colonne);
     for (int index = 0; index < (res.ligne * res.colonne); index++) {
@@ -175,6 +192,32 @@ public:
     return res;
   }
 
+  /**
+   * @brief Produit matriciel, ordre de boucles i, k, j
+   *
+   * Pour chaque ligne i de A et chaque k, A(i,k) est lu une seule fois puis
+   * multiplié par toute la ligne k de B, ajoutée à la ligne i du résultat.
+   * Dans la boucle intérieure, B et le résultat sont parcourus case par case,
+   * dans l'ordre où ils sont rangés en mémoire.
+   */
+  Matrix operator*(const Matrix &other) const {
+    if (this->colonne != other.ligne)
+      throw std::invalid_argument(
+          "Error: cannot multiply, columns of A != lines of B");
+
+    Matrix res(this->ligne, other.colonne); // rempli de 0
+    for (int i = 0; i < this->ligne; i++) {
+      for (int k = 0; k < this->colonne; k++) {
+        const double a_ik = this->m_values[i * this->colonne + k];
+        for (int j = 0; j < other.colonne; j++) {
+          res.m_values[i * res.colonne + j] +=
+              a_ik * other.m_values[k * other.colonne + j];
+        }
+      }
+    }
+    return res;
+  }
+
   friend Matrix operator*(const Matrix &m, const std::vector<double> &vect) {
     if (m.colonne != static_cast<int>(vect.size()))
       throw std::invalid_argument(
@@ -187,7 +230,7 @@ public:
       double res_sum = 0;
       for (int index = 0; index < m.colonne; index++) {
         res_sum += (m.m_values[index + (m.colonne * (i / res.colonne))] // Ligne
-                    * vect.at(index % static_cast<int>(vect.size()))  // Vecteur
+                    * vect.at(index % static_cast<int>(vect.size())) // Vecteur
         );
       }
       res.m_values[i] = res_sum;
@@ -215,6 +258,31 @@ public:
         return false;
     return true;
   }
+
+  // Affichage matrices
+  friend std::ostream &operator<<(std::ostream &out, const Matrix &m) {
+    std::size_t largeur = 0;
+    const int precision = 3;
+    for (double x : m.m_values) {
+      std::ostringstream t;
+      t << std::fixed << std::setprecision(precision) << x;
+      largeur = std::max(largeur, t.str().size());
+    }
+    const auto default_precision(out.precision());
+    const auto default_flags(out.flags());
+
+    out << std::fixed << std::setprecision(precision) << "[[";
+    for (int i = 0; i < m.ligne * m.colonne; i++) {
+      if (i % m.colonne == 0 && i != 0) {
+        out << "]\n [";
+      }
+      out << ' ' << std::setw(static_cast<int>(largeur)) << m.m_values[i];
+    }
+    out << "]]" << std::setprecision(default_precision);
+    out.flags(default_flags);
+    return out;
+  }
+
   int nbLignes() const { return ligne; }
   int nbColonne() const { return colonne; }
 
