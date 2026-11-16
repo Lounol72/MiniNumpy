@@ -161,12 +161,6 @@ TEST_CASE("Vérifications des matrices") {
     CHECK_MESSAGE(a == c, "Le remplissage de matrices ne fonctionnes pas");
     CHECK_THROWS_AS(a == b, std::invalid_argument);
   }
-  SUBCASE("Produit Matriciel") {
-    for (int i = 0; i < 3 * 3; i++) {
-      a(i % a.nbLignes(), i % a.nbColonne()) = i;
-      c(i % c.nbLignes(), i % c.nbColonne()) = i;
-    }
-  }
 }
 
 // ============================================================================
@@ -212,13 +206,18 @@ TEST_CASE("Matrice : constructeur vector<vector<double>> (carrée)") {
 }
 
 TEST_CASE("Matrice : constructeur vector<vector<double>> (2x3)") {
-  // NB : pas de test 3x2 ici, il provoque actuellement une lecture hors
-  // limites (ASan arrête alors tout l'exécutable).
   std::vector<std::vector<double>> v = {{1, 2, 3}, {4, 5, 6}};
   mnp::Matrix m(v);
   CHECK_MESSAGE(
       m == fabriquer({{1, 2, 3}, {4, 5, 6}}),
       "Le constructeur doit recopier toutes les valeurs à leur place");
+}
+
+TEST_CASE("Matrice : constructeur vector<vector<double>> (3x2)") {
+  mnp::Matrix m({{1, 2}, {3, 4}, {5, 6}});
+  CHECK(m.nbLignes() == 3);
+  CHECK(m.nbColonne() == 2);
+  CHECK(m == fabriquer({{1, 2}, {3, 4}, {5, 6}}));
 }
 
 TEST_CASE("Matrice : accès (i, j) et bornes") {
@@ -333,12 +332,12 @@ TEST_CASE("Matrice : produit matriciel (carré)") {
 }
 
 TEST_CASE("Matrice : produit matriciel (rectangulaire)") {
-  // NB : pas de test (3x2)*(2x3) ici, il provoque actuellement une lecture
-  // hors limites (ASan arrête alors tout l'exécutable).
   mnp::Matrix a = fabriquer({{1, 2, 3}, {4, 5, 6}});      // 2x3
   mnp::Matrix b = fabriquer({{7, 8}, {9, 10}, {11, 12}}); // 3x2
   CHECK_MESSAGE(a * b == fabriquer({{58, 64}, {139, 154}}),
                 "(2x3)*(3x2) doit donner une 2x2");
+  CHECK_MESSAGE(b * a == fabriquer({{39, 54, 69}, {49, 68, 87}, {59, 82, 105}}),
+                "(3x2)*(2x3) doit donner une 3x3");
 
   CHECK_MESSAGE(a * mnp::Matrix::identity(3) == a, "A * I3 doit valoir A");
   CHECK_MESSAGE(mnp::Matrix::identity(2) * a == a, "I2 * A doit valoir A");
@@ -359,12 +358,15 @@ TEST_CASE("Matrice : produit matrice × vecteur (carré)") {
 }
 
 TEST_CASE("Matrice : produit matrice × vecteur (rectangulaire)") {
-  // NB : pas de test avec plus de lignes que de colonnes ici, il provoque
-  // actuellement une écriture hors limites (ASan arrête tout l'exécutable).
   mnp::Matrix a = fabriquer({{1, 2, 3}, {4, 5, 6}}); // 2x3
   std::vector<double> x = {1, 0, -1};
   CHECK_MESSAGE(a * x == fabriquer({{-2}, {-2}}),
                 "(2x3) * vecteur de taille 3 doit donner une 2x1");
+
+  mnp::Matrix haute = fabriquer({{1, 2}, {3, 4}, {5, 6}}); // 3x2
+  std::vector<double> y = {1, -1};
+  CHECK_MESSAGE(haute * y == fabriquer({{-1}, {-1}, {-1}}),
+                "(3x2) * vecteur de taille 2 doit donner une 3x1");
 
   std::vector<double> mauvais = {1, 2};
   CHECK_THROWS_AS(a * mauvais, std::invalid_argument);
@@ -468,4 +470,103 @@ TEST_CASE("Matrice : constructeur depuis une liste écrite directement") {
   CHECK(colonne.nbLignes() == 3);
   CHECK(colonne.nbColonne() == 1);
   CHECK(colonne(2, 0) == 3);
+}
+
+// ============================================================================
+// Calculs à la main de la note (étape 2, section 1)
+// A = [[1, 2], [3, 4]], B = [[0, 1], [1, 0]], C = [[1, 2, 3], [4, 5, 6]]
+// ============================================================================
+
+TEST_CASE("Matrice : calculs à la main de la note") {
+  const mnp::Matrix A({{1, 2}, {3, 4}});
+  const mnp::Matrix B({{0, 1}, {1, 0}});
+  const mnp::Matrix C({{1, 2, 3}, {4, 5, 6}});
+
+  SUBCASE("1. AB et BA : B à droite échange les colonnes, à gauche les lignes") {
+    CHECK(A * B == mnp::Matrix({{2, 1}, {4, 3}}));
+    CHECK(B * A == mnp::Matrix({{3, 4}, {1, 2}}));
+    CHECK_FALSE_MESSAGE(A * B == B * A, "Le produit n'est pas commutatif");
+  }
+
+  SUBCASE("2. Transposées et tailles des produits") {
+    CHECK(A.transpose() == mnp::Matrix({{1, 3}, {2, 4}}));
+    CHECK(C.transpose() == mnp::Matrix({{1, 4}, {2, 5}, {3, 6}}));
+
+    const mnp::Matrix Ct = C.transpose();
+    const mnp::Matrix AC = A * C; // (2x2)(2x3) -> 2x3
+    CHECK(AC.nbLignes() == 2);
+    CHECK(AC.nbColonne() == 3);
+
+    const mnp::Matrix CtA = Ct * A; // (3x2)(2x2) -> 3x2
+    CHECK(CtA == mnp::Matrix({{13, 18}, {17, 24}, {21, 30}}));
+
+    const mnp::Matrix CCt = C * Ct; // (2x3)(3x2) -> 2x2
+    CHECK(CCt == mnp::Matrix({{14, 32}, {32, 77}}));
+
+    const mnp::Matrix CtC = Ct * C; // (3x2)(2x3) -> 3x3
+    CHECK(CtC == mnp::Matrix({{17, 22, 27}, {22, 29, 36}, {27, 36, 45}}));
+
+    // CA : (2x3)(2x2), 3 colonnes != 2 lignes -> n'existe pas
+    CHECK_THROWS_AS(C * A, std::invalid_argument);
+  }
+
+  SUBCASE("3. AC, puis (AC)^T = C^T A^T") {
+    const mnp::Matrix AC = A * C;
+    CHECK(AC == mnp::Matrix({{9, 12, 15}, {19, 26, 33}}));
+    CHECK(AC.transpose() == mnp::Matrix({{9, 19}, {12, 26}, {15, 33}}));
+    CHECK(AC.transpose() == C.transpose() * A.transpose());
+  }
+
+  SUBCASE("4. A × (1, 1)") {
+    const std::vector<double> un_un = {1, 1};
+    CHECK(A * un_un == mnp::Matrix({{3}, {7}}));
+  }
+}
+
+TEST_CASE("Matrice : (AB)^T = B^T A^T sur des matrices non carrées") {
+  SUBCASE("(2x3)(3x4)") {
+    const mnp::Matrix a({{1, -2, 3}, {0.5, 4, -1}});
+    const mnp::Matrix b({{2, 0, 1, -3}, {1, 1, 0, 2}, {-1, 5, 2, 0.25}});
+    const mnp::Matrix abt = (a * b).transpose();
+    CHECK(abt.nbLignes() == 4);
+    CHECK(abt.nbColonne() == 2);
+    CHECK(abt == b.transpose() * a.transpose());
+    CHECK_MESSAGE(a.transpose().transpose() == a, "(A^T)^T doit valoir A");
+  }
+
+  SUBCASE("(4x5)(5x3), valeurs variées") {
+    mnp::Matrix a(4, 5);
+    mnp::Matrix b(5, 3);
+    for (int i = 0; i < 4; i++)
+      for (int j = 0; j < 5; j++)
+        a(i, j) = (i * 7 + j * 3) % 9 - 4.5;
+    for (int i = 0; i < 5; i++)
+      for (int j = 0; j < 3; j++)
+        b(i, j) = (i * 2 + j * 5) % 7 - 3;
+    CHECK((a * b).transpose() == b.transpose() * a.transpose());
+  }
+}
+
+TEST_CASE("Matrice : cas limites 1x1 et 1xn") {
+  SUBCASE("1x1") {
+    const mnp::Matrix trois({{3}});
+    CHECK(trois * mnp::Matrix({{4}}) == mnp::Matrix({{12}}));
+    CHECK(trois.transpose() == trois);
+    CHECK(mnp::Matrix::identity(1) == mnp::Matrix({{1}}));
+    CHECK(mnp::Matrix::identity(1).isIndentity());
+    CHECK(trois * mnp::Matrix::identity(1) == trois);
+    CHECK(trois * std::vector<double>{2} == mnp::Matrix({{6}}));
+  }
+
+  SUBCASE("1xn : ligne, transposée, produits scalaire et extérieur") {
+    const mnp::Matrix ligne({{1, 2, 3}});
+    const mnp::Matrix autre({{4, 5, 6}});
+    CHECK(ligne.transpose() == mnp::Matrix({{1}, {2}, {3}}));
+    // (1x3)(3x1) -> 1x1 : produit scalaire
+    CHECK(ligne * autre.transpose() == mnp::Matrix({{32}}));
+    // (3x1)(1x3) -> 3x3 : produit extérieur
+    CHECK(ligne.transpose() * autre ==
+          mnp::Matrix({{4, 5, 6}, {8, 10, 12}, {12, 15, 18}}));
+    CHECK_THROWS_AS(ligne * autre, std::invalid_argument);
+  }
 }
