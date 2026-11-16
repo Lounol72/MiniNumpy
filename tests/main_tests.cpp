@@ -417,14 +417,24 @@ TEST_CASE("Matrice : affichage <<") {
   }
 }
 
-TEST_CASE("Matrice : produit i,k,j (operator*) == produit i,j,k") {
+TEST_CASE("Matrice : produit, comparaison avec un calcul de référence") {
+  // Référence volontairement naïve, écrite avec operator() : C(i,j) est la
+  // somme des A(i,k) * B(k,j). Elle ne partage aucun code avec operator*.
+  auto reference = [](const mnp::Matrix &a, const mnp::Matrix &b) {
+    mnp::Matrix c(a.nbLignes(), b.nbColonne());
+    for (int i = 0; i < a.nbLignes(); i++)
+      for (int j = 0; j < b.nbColonne(); j++)
+        for (int k = 0; k < a.nbColonne(); k++)
+          c(i, j) += a(i, k) * b(k, j);
+    return c;
+  };
+
   SUBCASE("non carrées : (2x3) * (3x4)") {
     mnp::Matrix a = fabriquer({{1, -2, 3}, {0.5, 4, -1}});
     mnp::Matrix b = fabriquer(
         {{2, 0, 1, -3}, {1, 1, 0, 2}, {-1, 5, 2, 0.25}});
     CHECK(a * b == fabriquer({{-3, 13, 7, -6.25}, {6, -1, -1.5, 6.25}}));
-    CHECK_MESSAGE(a * b == a.produit_ijk(b),
-                  "Les deux ordres de boucles doivent donner le même résultat");
+    CHECK(a * b == reference(a, b));
   }
 
   SUBCASE("rectangulaires plus grandes : (7x5) * (5x9)") {
@@ -436,13 +446,12 @@ TEST_CASE("Matrice : produit i,k,j (operator*) == produit i,j,k") {
     for (int i = 0; i < 5; i++)
       for (int j = 0; j < 9; j++)
         b(i, j) = (i * 5 + j * 2) % 13 - 6;
-    CHECK(a * b == a.produit_ijk(b));
+    CHECK(a * b == reference(a, b));
   }
 
-  SUBCASE("dimensions incompatibles : les deux versions lèvent une exception") {
+  SUBCASE("dimensions incompatibles") {
     mnp::Matrix a(2, 3);
     CHECK_THROWS_AS(a * a, std::invalid_argument);
-    CHECK_THROWS_AS(a.produit_ijk(a), std::invalid_argument);
   }
 }
 

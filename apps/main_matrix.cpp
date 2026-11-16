@@ -22,26 +22,21 @@ int main(void) {
       b(i, j) = (i * j) % 7;
     }
 
-  // Seul le produit est chronométré, pas le remplissage
+  // Seul le produit est chronométré, pas le remplissage.
+  // (Comparaison i,j,k / i,k,j du 16/11 : voir le journal de bord.)
+  const auto debut = std::chrono::steady_clock::now();
+  const mnp::Matrix c = a * b;
+  const auto fin = std::chrono::steady_clock::now();
+
+  const double ms =
+      std::chrono::duration<double, std::milli>(fin - debut).count();
   const double operations = 2.0 * n * n * n;
-  auto mesurer = [&](const char *nom, auto produit) {
-    const auto debut = std::chrono::steady_clock::now();
-    mnp::Matrix c = produit();
-    const auto fin = std::chrono::steady_clock::now();
-    const double ms =
-        std::chrono::duration<double, std::milli>(fin - debut).count();
-    std::cout << "Produit " << n << "x" << n << " (ordre " << nom
-              << ") : " << ms << " ms, soit "
-              << operations / (ms / 1000.0) / 1e6
-              << " millions d'opérations par seconde\n";
-    return c;
-  };
+  std::cout << "Produit " << n << "x" << n << " : " << ms << " ms, soit "
+            << operations / (ms / 1000.0) / 1e6
+            << " millions d'opérations par seconde\n";
 
-  const mnp::Matrix c_ijk = mesurer("i,j,k", [&] { return a.produit_ijk(b); });
-  const mnp::Matrix c_ikj = mesurer("i,k,j", [&] { return a * b; });
-
-  // Utiliser les résultats (à l'étape 6, avec -O2, le compilateur pourrait
-  // sinon supprimer un calcul dont personne ne lit le résultat)
-  std::cout << "Mêmes résultats : " << (c_ijk == c_ikj ? "oui" : "NON") << '\n';
+  // Utiliser le résultat (avec -O2, le compilateur pourrait sinon supprimer
+  // un calcul dont personne ne lit le résultat)
+  std::cout << "c(1, 1) = " << c(1, 1) << '\n';
   return 0;
 }
