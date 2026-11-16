@@ -1,0 +1,108 @@
+% =================================================
+% CHAPITRE 1 : INTRODUCTION
+% =================================================
+
+\chapter{Introduction}
+
+\section{Contexte}
+
+MiniNumpy est une bibliothèque de calcul numérique
+écrite de zéro en C++20, sans dépendance extérieure.
+Elle reprend, à petite échelle, ce que fait NumPy
+en Python : manipuler des vecteurs et des matrices
+de réels et leur appliquer des opérations.
+
+Le projet a un but final précis : réimplémenter en
+C++, avec MiniNumpy à la place de NumPy, le réseau
+de neurones du livre \emph{Neural Networks from
+Scratch in Python}~\cite{nnfs}, puis l'entraîner sur
+le jeu de données Fashion-MNIST (des images de
+vêtements à classer en dix catégories).
+
+C'est ce but qui fixe le contenu de ce carnet :
+chaque notion présentée ici sert, à un moment ou
+à un autre, à faire fonctionner ce réseau.
+
+\section{Rôle de ce carnet}
+
+Écrire une bibliothèque numérique oblige à
+comprendre exactement ce que l'on calcule : une
+formule mal comprise donne un code qui compile mais
+renvoie de faux résultats. Ce carnet fait donc le
+lien entre la théorie et le code.
+
+Chaque notion y est présentée de la même façon :
+\begin{enumerate}
+    \item une \textbf{définition} précise ;
+    \item un \textbf{exemple calculé à la main}, sur
+          de petites valeurs, qui sert aussi de cas
+          de test ;
+    \item son \textbf{utilité dans le projet} :
+          à quoi elle sert dans le réseau de
+          neurones ;
+    \item son \textbf{implémentation} : la classe
+          ou la fonction de MiniNumpy qui la
+          réalise.
+\end{enumerate}
+
+\section{Plan}
+
+Le carnet suit l'ordre dans lequel la bibliothèque
+est construite :
+\begin{enumerate}
+    \item \textbf{Vecteurs.} Les opérations de base,
+          le produit scalaire et la norme. Un
+          neurone calcule un produit scalaire entre
+          ses entrées et ses poids.
+    \item \textbf{Matrices.} Stockage, accès aux
+          coefficients, transposée et produit
+          matriciel. Les poids d'une couche entière
+          forment une matrice, et un seul produit
+          matriciel calcule la sortie de tous les
+          neurones de la couche, pour tout un lot
+          d'images.
+    \item \textbf{Broadcasting.} La règle qui permet
+          d'additionner un vecteur à chaque ligne
+          d'une matrice, par exemple pour ajouter
+          les biais d'une couche.
+    \item \textbf{Fonctions d'activation.} ReLU et
+          ses voisines, qui rendent le réseau non
+          linéaire.
+    \item \textbf{Softmax.} Elle transforme les
+          sorties de la dernière couche en
+          probabilités pour les dix classes.
+    \item \textbf{Entropie croisée.} La fonction de
+          perte, qui mesure l'écart entre la
+          prédiction du réseau et la bonne réponse.
+    \item \textbf{Rétropropagation.} Dérivées
+          partielles, gradient et dérivation en
+          chaîne : comment chaque poids influe sur
+          l'erreur.
+    \item \textbf{Descente de gradient.} Elle
+          corrige les poids pas à pas pour faire
+          baisser l'erreur ; c'est l'entraînement
+          proprement dit.
+\end{enumerate}
+
+\section{Conventions de notation}
+
+\begin{itemize}
+    \item Les scalaires sont notés en minuscules
+          italiques : $a$, $\lambda$, $x_i$.
+    \item Les vecteurs sont notés en minuscules
+          grasses : $\mathbf{x} \in \R^n$. Ce sont
+          des vecteurs colonnes.
+    \item Les matrices sont notées en majuscules :
+          $W \in \R^{m \times n}$ a $m$ lignes et
+          $n$ colonnes, et $w_{ij}$ est le
+          coefficient de la ligne $i$ et de la
+          colonne $j$.
+    \item La transposée de $W$ est notée $W^\top$.
+    \item En mathématiques, les indices commencent
+          à $1$ : $\mathbf{x} = (x_1, \dots, x_n)$.
+          En C++, ils commencent à $0$ : la
+          composante $x_i$ correspond donc à
+          \texttt{v[i-1]} dans le code.
+\end{itemize}
+
+

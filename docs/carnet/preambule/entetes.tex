@@ -1,0 +1,22 @@
+% =================================================
+% 7. EN-TETES ET PIEDS DE PAGE
+% =================================================
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{MiniNumpy}
+
+\fancyfoot[C]{\thepage}
+
+\setlength{\headheight}{15pt}
+
+% Appliquer également le style aux pages de chapitres
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyhead[L]{\nouppercase{\leftmark}}
+    \fancyhead[R]{MiniNumpy}
+    \fancyfoot[C]{\thepage}
+}
+

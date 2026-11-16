@@ -1,0 +1,48 @@
+% =================================================
+% 4. ENVIRONNEMENTS MATHEMATIQUES
+% =================================================
+
+\theoremstyle{definition}
+
+\newtheorem{definition}{Définition}[chapter]
+\newtheorem{example}{Exemple}[chapter]
+
+\theoremstyle{plain}
+
+\newtheorem{theorem}[definition]{Théorème}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{lemma}[definition]{Lemme}
+\newtheorem{corollary}[definition]{Corollaire}
+
+\theoremstyle{remark}
+
+\newtheorem{remark}[definition]{Remarque}
+
+% =================================================
+% 5. ENCADRES PERSONNALISES
+% =================================================
+
+\newtcolorbox{importantbox}{
+    breakable,
+    colback=red!5,
+    colframe=red!60!black,
+    title=À retenir,
+    fonttitle=\bfseries
+}
+
+\newtcolorbox{methodbox}{
+    breakable,
+    colback=green!5,
+    colframe=green!50!black,
+    title=Méthode,
+    fonttitle=\bfseries
+}
+
+\newtcolorbox{codebox}{
+    breakable,
+    colback=gray!5,
+    colframe=gray!60,
+    title=Implémentation informatique,
+    fonttitle=\bfseries
+}
+

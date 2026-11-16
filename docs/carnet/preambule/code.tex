@@ -1,0 +1,39 @@
+% =================================================
+% 6. CONFIGURATION DU CODE SOURCE
+% =================================================
+
+\definecolor{codegreen}{RGB}{0,128,0}
+\definecolor{codegray}{RGB}{100,100,100}
+\definecolor{codepurple}{RGB}{150,50,150}
+\definecolor{codebackground}{RGB}{245,245,245}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{codebackground},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    stringstyle=\color{codepurple},
+    numberstyle=\tiny\color{codegray},
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numbersep=8pt,
+    breaklines=true,
+    showstringspaces=false,
+    frame=single,
+    tabsize=4,
+    captionpos=b,
+    columns=fullflexible,
+    literate=
+        {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1
+        {à}{{\`a}}1 {â}{{\^a}}1 {ä}{{\"a}}1
+        {î}{{\^i}}1 {ï}{{\"i}}1
+        {ô}{{\^o}}1 {ö}{{\"o}}1
+        {ù}{{\`u}}1 {û}{{\^u}}1 {ü}{{\"u}}1
+        {ç}{{\c{c}}}1 {œ}{{\oe}}1 {æ}{{\ae}}1
+        {É}{{\'E}}1 {È}{{\`E}}1 {Ê}{{\^E}}1 {À}{{\`A}}1
+        {Ç}{{\c{C}}}1 {Œ}{{\OE}}1
+        {«}{{\guillemotleft}}1 {»}{{\guillemotright}}1
+        {°}{{\textdegree}}1 {€}{{\texteuro}}1
+}
+
+\lstset{style=mystyle}
+
