@@ -2,23 +2,22 @@
 % 6. CONFIGURATION DU CODE SOURCE
 % =================================================
 
-\definecolor{codegreen}{RGB}{0,128,0}
-\definecolor{codegray}{RGB}{100,100,100}
+\definecolor{codegreen}{RGB}{0,120,60}
 \definecolor{codepurple}{RGB}{150,50,150}
-\definecolor{codebackground}{RGB}{245,245,245}
 
 \lstdefinestyle{mystyle}{
-    backgroundcolor=\color{codebackground},
+    backgroundcolor=\color{fondcode},
     commentstyle=\color{codegreen},
-    keywordstyle=\color{blue},
+    keywordstyle=\color{accent}\bfseries,
     stringstyle=\color{codepurple},
-    numberstyle=\tiny\color{codegray},
+    numberstyle=\tiny\color{discret},
     basicstyle=\ttfamily\small,
     numbers=left,
     numbersep=8pt,
     breaklines=true,
     showstringspaces=false,
     frame=single,
+    rulecolor=\color{discret!50},
     tabsize=4,
     captionpos=b,
     columns=fullflexible,
@@ -36,4 +35,25 @@
 }
 
 \lstset{style=mystyle}
+
+% Code dans le texte, avec la coloration C++ : \cpp|std::size_t|
+\lstdefinestyle{inline}{
+    language=C++,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{accent}\bfseries,
+    stringstyle=\color{codepurple},
+}
+\newcommand{\cpp}{\lstinline[style=inline]}
+
+% Extraits de src/ délimités par des commentaires repères, placés en
+% début de ligne dans le code :
+%     // carnet: debutNom
+%     ...
+%     // carnet: finNom
+% puis \lstinputlisting[language=C++, linerange=debutNom-finNom]{...}
+\lstset{
+    rangeprefix=\/\/\ carnet:\ ,
+    rangesuffix=,
+    includerangemarker=false
+}
 

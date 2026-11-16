@@ -55,7 +55,7 @@ clean:
 		rm -f $(EXES)
 
 doc:
-	latexmk -pdf -cd -outdir=. -auxdir=build docs/carnet/carnet_maths.tex
+	latexmk -pdf -interaction=nonstopmode -halt-on-error -cd -outdir=. -auxdir=build docs/carnet/carnet_maths.tex
 
 .PHONY : all clean test vecteur
 

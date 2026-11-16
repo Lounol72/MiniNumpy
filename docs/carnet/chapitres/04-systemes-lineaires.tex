@@ -1,0 +1,519 @@
+% =================================================
+% CHAPITRE 4 : SYSTEMES LINEAIRES
+% =================================================
+
+\chapter{Systèmes linéaires}
+\label{chap-systemes}
+
+\section{Définition}
+
+\begin{definition}[Système linéaire]
+Un \emph{système linéaire} de $n$ équations à $n$
+inconnues $x_1, \dots, x_n$ s'écrit
+\[
+    \left\{
+    \begin{array}{ccccccc}
+        a_{11} x_1 & + & \cdots & + & a_{1n} x_n & = & b_1 \\
+        \vdots     &   &        &   & \vdots     &   & \vdots \\
+        a_{n1} x_1 & + & \cdots & + & a_{nn} x_n & = & b_n
+    \end{array}
+    \right.
+\]
+Avec le produit d'une matrice par un vecteur
+(\cref{def-matrice-vecteur}), il s'écrit simplement
+\[
+    A\vect{x} = \vect{b},
+    \qquad
+    A \in \R^{n \times n},\
+    \vect{x} \in \R^n,\
+    \vect{b} \in \R^n.
+\]
+$A$ est la \emph{matrice du système}, $\vect{b}$ le
+\emph{second membre} et $\vect{x}$ le vecteur des
+inconnues.
+\end{definition}
+
+\begin{definition}[Matrice augmentée]
+Pour résoudre le système à la main, on écrit $A$ et
+$\vect{b}$ côte à côte dans la \emph{matrice augmentée}
+$[A \mid \vect{b}] \in \R^{n \times (n+1)}$ :
+\[
+    \left(
+    \begin{array}{ccc|c}
+        a_{11} & \cdots & a_{1n} & b_1 \\
+        \vdots &        & \vdots & \vdots \\
+        a_{n1} & \cdots & a_{nn} & b_n
+    \end{array}
+    \right).
+\]
+\end{definition}
+
+\begin{definition}[Matrice inversible]
+Une matrice carrée $A \in \R^{n \times n}$ est
+\emph{inversible} s'il existe une matrice
+$A^{-1} \in \R^{n \times n}$ telle que
+\[
+    A A^{-1} = A^{-1} A = I_n.
+\]
+Dans ce cas, le système $A\vect{x} = \vect{b}$ a une
+solution unique pour tout $\vect{b}$ :
+$\vect{x} = A^{-1}\vect{b}$. Une matrice qui n'est
+pas inversible est dite \emph{singulière}.
+\end{definition}
+
+\begin{importantbox}
+On ne calcule presque jamais $A^{-1}$ pour résoudre
+$A\vect{x} = \vect{b}$ : la méthode de Gauss donne
+$\vect{x}$ directement, plus vite et avec moins
+d'erreurs d'arrondi.
+\end{importantbox}
+
+\section{Le pivot de Gauss}
+
+\subsection{Opérations élémentaires}
+
+\begin{proposition}
+Les trois opérations suivantes sur les lignes de la
+matrice augmentée ne changent pas les solutions du
+système :
+\begin{enumerate}
+    \item échanger deux lignes :
+          $L_i \leftrightarrow L_j$ ;
+    \item multiplier une ligne par un réel non nul :
+          $L_i \leftarrow \lambda L_i$, avec
+          $\lambda \neq 0$ ;
+    \item ajouter à une ligne un multiple d'une autre
+          ligne : $L_i \leftarrow L_i - \ell\, L_j$,
+          avec $i \neq j$.
+\end{enumerate}
+\end{proposition}
+
+\subsection{Élimination}
+\label{sec-elimination}
+
+\begin{definition}[Matrice triangulaire]
+Une matrice carrée $U$ est \emph{triangulaire
+supérieure} si tous ses coefficients sous la
+diagonale sont nuls : $u_{ij} = 0$ pour $i > j$. Elle
+est \emph{triangulaire inférieure} si tous ses
+coefficients au-dessus de la diagonale sont nuls.
+\end{definition}
+
+L'idée de Gauss : utiliser l'opération 3 pour
+transformer $A\vect{x} = \vect{b}$ en un système
+\emph{triangulaire supérieur} $U\vect{x} = \vect{c}$,
+qui a les mêmes solutions et qui se résout facilement.
+
+\begin{methodbox}
+Pour chaque colonne $k = 1, \dots, n - 1$ :
+\begin{enumerate}
+    \item le \emph{pivot} est le coefficient
+          diagonal $a_{kk}$ ;
+    \item pour chaque ligne $i > k$ sous le pivot,
+          calculer le \emph{multiplicateur}
+          $\ell_{ik} = \dfrac{a_{ik}}{a_{kk}}$ ;
+    \item faire $L_i \leftarrow L_i - \ell_{ik}\, L_k$,
+          sur toute la ligne de la matrice augmentée
+          (second membre compris). Le coefficient
+          $a_{ik}$ devient $0$.
+\end{enumerate}
+À la fin, tous les coefficients sous la diagonale
+sont nuls.
+\end{methodbox}
+
+\subsection{Remontée}
+
+\begin{methodbox}
+Le système $U\vect{x} = \vect{c}$ se résout de
+\textbf{bas en haut}. La dernière ligne ne contient
+qu'une inconnue, puis chaque ligne n'en ajoute
+qu'une :
+\[
+    x_n = \frac{c_n}{u_{nn}},
+    \qquad
+    x_i = \frac{1}{u_{ii}}
+    \left( c_i - \sum_{j = i+1}^{n} u_{ij}\, x_j \right)
+    \quad \text{pour } i = n - 1, \dots, 1.
+\]
+\end{methodbox}
+
+\begin{importantbox}
+En C++, la boucle de la remontée descend de $n - 1$
+à $0$ inclus. Avec un indice de type
+\cpp|std::size_t| (non signé), la condition
+\cpp|i >= 0| est toujours vraie : la boucle ne
+s'arrête jamais. Utiliser un \cpp|int|.
+\end{importantbox}
+
+\subsection{Le pivot partiel}
+
+La méthode de la \cref{sec-elimination} divise par
+le pivot $a_{kk}$.
+Elle échoue si ce pivot est nul, alors même que le
+système a une solution unique.
+
+\begin{definition}[Pivot partiel]
+Avant de traiter la colonne $k$, on cherche, parmi les
+lignes $k$ à $n$, celle dont le coefficient de la
+colonne $k$ a la plus grande \textbf{valeur absolue} :
+\[
+    p = \operatorname*{arg\,max}_{k \le i \le n} \abs{a_{ik}}.
+\]
+On échange les lignes $k$ et $p$ (second membre
+compris), puis on élimine comme avant.
+\end{definition}
+
+\begin{remark}
+Le pivot partiel ne sert pas seulement à éviter la
+division par $0$. Un pivot \emph{très petit} donne
+des multiplicateurs $\ell_{ik}$ très grands, qui
+amplifient les erreurs d'arrondi. Choisir le plus
+grand pivot garantit $\abs{\ell_{ik}} \le 1$.
+\end{remark}
+
+\begin{definition}[Pivot numériquement nul]
+En \cpp|double|, un calcul qui devrait donner $0$
+donne souvent un nombre minuscule, comme
+$10^{-17}$. On considère donc qu'un pivot est nul
+quand sa valeur absolue est inférieure à un seuil
+$\varepsilon$. Si le plus grand pivot possible de la
+colonne $k$ est nul, la matrice est singulière.
+\end{definition}
+
+\subsection{Coût}
+
+\begin{proposition}
+Pour une matrice $n \times n$ :
+\begin{itemize}
+    \item l'élimination coûte environ
+          $\frac{2}{3} n^3$ opérations ;
+    \item la remontée coûte environ $n^2$ opérations.
+\end{itemize}
+\end{proposition}
+
+\section{La décomposition LU}
+
+L'élimination de Gauss « consomme » le second membre
+$\vect{b}$. Pour résoudre le même système avec
+beaucoup de seconds membres différents, on garde la
+trace des opérations faites sur $A$.
+
+\begin{theorem}[Décomposition $PA = LU$]
+Pour toute matrice inversible $A \in \R^{n \times n}$,
+il existe :
+\begin{itemize}
+    \item une \emph{matrice de permutation} $P$ : la
+          matrice identité dont on a échangé des
+          lignes, qui représente les échanges du
+          pivot partiel ;
+    \item une matrice $L$ triangulaire inférieure, avec
+          des $1$ sur la diagonale, dont les
+          coefficients sous la diagonale sont les
+          multiplicateurs $\ell_{ik}$ ;
+    \item une matrice $U$ triangulaire supérieure : le
+          résultat de l'élimination de Gauss ;
+\end{itemize}
+telles que
+\[
+    PA = LU.
+\]
+\end{theorem}
+
+\begin{methodbox}
+Pour résoudre $A\vect{x} = \vect{b}$ une fois
+$PA = LU$ connu :
+\begin{enumerate}
+    \item permuter le second membre : calculer
+          $P\vect{b}$ ;
+    \item \emph{descente} : résoudre
+          $L\vect{y} = P\vect{b}$ de haut en bas
+          ($L$ est triangulaire inférieure) ;
+    \item \emph{remontée} : résoudre
+          $U\vect{x} = \vect{y}$ de bas en haut.
+\end{enumerate}
+La décomposition coûte environ $\frac{2}{3} n^3$
+opérations, mais elle est faite \textbf{une seule
+fois}. Chaque résolution ne coûte ensuite qu'environ
+$2n^2$ opérations.
+\end{methodbox}
+
+\begin{remark}
+$L$ et $U$ tiennent dans \textbf{une seule} matrice
+$n \times n$ : $U$ occupe la diagonale et le dessus,
+et les multiplicateurs de $L$ occupent le dessous, à
+la place des zéros créés par l'élimination. Les $1$
+de la diagonale de $L$ ne sont pas stockés, puisqu'on
+sait qu'ils valent $1$. De même, $P$ se représente par
+un tableau de $n$ entiers : la ligne d'origine de
+chaque ligne.
+\end{remark}
+
+\begin{importantbox}
+Quand on échange deux lignes à la colonne $k$, les
+multiplicateurs déjà calculés dans les colonnes
+$1$ à $k - 1$ appartiennent à ces lignes : ils
+doivent être échangés aussi. Sinon la solution peut
+être juste, mais $PA \neq LU$.
+\end{importantbox}
+
+\section{Déterminant et inverse}
+
+\subsection{Déterminant}
+
+\begin{definition}[Déterminant d'une matrice $2 \times 2$]
+\[
+    \det \begin{pmatrix} a & b \\ c & d \end{pmatrix}
+    = ad - bc.
+\]
+\end{definition}
+
+\begin{proposition}
+Pour $A, B \in \R^{n \times n}$ :
+\begin{enumerate}
+    \item $\det(AB) = \det(A) \det(B)$ ;
+    \item le déterminant d'une matrice triangulaire est
+          le produit de ses coefficients diagonaux ;
+    \item échanger deux lignes multiplie le
+          déterminant par $-1$ ;
+    \item $A$ est inversible si et seulement si
+          $\det(A) \neq 0$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proposition}[Déterminant par LU]
+Si $PA = LU$ avec $s$ échanges de lignes effectifs,
+alors
+\[
+    \det(A) = (-1)^s \prod_{i=1}^{n} u_{ii}.
+\]
+\end{proposition}
+
+\begin{proof}
+$\det(P)\det(A) = \det(L)\det(U)$. $L$ est
+triangulaire avec des $1$ sur la diagonale, donc
+$\det(L) = 1$. $U$ est triangulaire, donc
+$\det(U) = \prod u_{ii}$. Enfin $P$ est l'identité
+après $s$ échanges, donc $\det(P) = (-1)^s$, et
+$\frac{1}{(-1)^s} = (-1)^s$.
+\end{proof}
+
+\subsection{Inverse}
+
+\begin{methodbox}
+La colonne $j$ de $A^{-1}$ est la solution de
+$A\vect{x} = \vect{e}_j$, où $\vect{e}_j$ est la
+colonne $j$ de $I_n$. Pour calculer $A^{-1}$ :
+\begin{enumerate}
+    \item décomposer $PA = LU$ \textbf{une fois} ;
+    \item résoudre les $n$ systèmes
+          $A\vect{x} = \vect{e}_j$ avec cette
+          décomposition.
+\end{enumerate}
+Cela revient à résoudre $AX = I_n$, où le second
+membre est une matrice : chaque colonne de $X$ est
+un système à part.
+\end{methodbox}
+
+\section{Conditionnement}
+
+\begin{definition}[Résidu]
+Si $\tilde{\vect{x}}$ est la solution calculée, le
+\emph{résidu} est $\vect{r} = \vect{b} - A\tilde{\vect{x}}$.
+Un résidu de norme proche de $0$ signifie que
+$\tilde{\vect{x}}$ vérifie presque le système.
+\end{definition}
+
+\begin{importantbox}
+Un petit résidu ne garantit pas que
+$\tilde{\vect{x}}$ est proche de la vraie solution.
+Quand la matrice est \emph{mal conditionnée}, une
+toute petite erreur sur $\vect{b}$ ou sur les arrondis
+peut changer beaucoup la solution.
+\end{importantbox}
+
+\begin{definition}[Conditionnement]
+Pour $A$ inversible, le \emph{conditionnement} est
+\[
+    \kappa(A) = \norm{A}\,\norm{A^{-1}} \ge 1.
+\]
+Plus $\kappa(A)$ est grand, plus la solution est
+sensible aux erreurs. En \cpp|double|, on perd
+environ $\log_{10} \kappa(A)$ chiffres significatifs
+sur les 16 disponibles.
+\end{definition}
+
+\begin{example}[Matrice de Hilbert]
+La matrice de Hilbert $H_n \in \R^{n \times n}$ est
+définie par
+\[
+    h_{ij} = \frac{1}{i + j - 1}.
+\]
+Elle est inversible, mais son conditionnement grandit
+très vite avec $n$. On choisit $\vect{x}$, on calcule
+$\vect{b} = H_n \vect{x}$, on résout, et on compare la
+solution obtenue au $\vect{x}$ choisi, pour
+$n = 5$, $10$ et $15$.
+\end{example}
+
+\section{Exemples calculés à la main}
+
+Les exercices de la note de l'étape 3 (le système
+$3 \times 3$, le pivot nul et le pivot minuscule)
+sont à faire à part, sur papier. Les exemples
+ci-dessous utilisent d'autres matrices.
+
+\begin{example}[Élimination et remontée]
+\label[example]{ex-gauss}
+On résout $A\vect{x} = \vect{b}$ avec
+\[
+    A = \begin{pmatrix} 2 & 1 & 1 \\ 4 & 3 & 3 \\ 8 & 7 & 9 \end{pmatrix},
+    \qquad
+    \vect{b} = \begin{pmatrix} 4 \\ 10 \\ 24 \end{pmatrix}.
+\]
+Colonne $1$, pivot $2$ : $\ell_{21} = 2$ et
+$\ell_{31} = 4$.
+\[
+    \left(
+    \begin{array}{ccc|c}
+        2 & 1 & 1 & 4 \\
+        4 & 3 & 3 & 10 \\
+        8 & 7 & 9 & 24
+    \end{array}
+    \right)
+    \xrightarrow[L_3 \leftarrow L_3 - 4L_1]{L_2 \leftarrow L_2 - 2L_1}
+    \left(
+    \begin{array}{ccc|c}
+        2 & 1 & 1 & 4 \\
+        0 & 1 & 1 & 2 \\
+        0 & 3 & 5 & 8
+    \end{array}
+    \right).
+\]
+Colonne $2$, pivot $1$ : $\ell_{32} = 3$.
+\[
+    \xrightarrow{L_3 \leftarrow L_3 - 3L_2}
+    \left(
+    \begin{array}{ccc|c}
+        2 & 1 & 1 & 4 \\
+        0 & 1 & 1 & 2 \\
+        0 & 0 & 2 & 2
+    \end{array}
+    \right).
+\]
+Remontée :
+$x_3 = \frac{2}{2} = 1$, puis
+$x_2 = 2 - x_3 = 1$, puis
+$x_1 = \frac{4 - x_2 - x_3}{2} = 1$.
+Donc $\vect{x} = (1, 1, 1)^\top$, et on vérifie que
+$A\vect{x}$ redonne bien $(4, 10, 24)^\top$.
+
+Ici, on a gardé le pivot diagonal pour simplifier.
+Avec le pivot partiel, on aurait d'abord échangé
+$L_1$ et $L_3$, car $\abs{8} > \abs{4} > \abs{2}$.
+\end{example}
+
+\begin{example}[Décomposition LU et déterminant]
+Les multiplicateurs de l'\cref{ex-gauss} donnent,
+sans échange de lignes ($P = I_3$) :
+\[
+    L = \begin{pmatrix} 1 & 0 & 0 \\ 2 & 1 & 0 \\ 4 & 3 & 1 \end{pmatrix},
+    \qquad
+    U = \begin{pmatrix} 2 & 1 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 2 \end{pmatrix}.
+\]
+On vérifie par exemple la ligne $3$ de $LU$ :
+$4 \times (2, 1, 1) + 3 \times (0, 1, 1) + 1 \times (0, 0, 2)
+= (8, 7, 9)$, c'est bien la ligne $3$ de $A$. Rangées
+dans une seule matrice, $L$ et $U$ donnent
+\[
+    \begin{pmatrix} 2 & 1 & 1 \\ 2 & 1 & 1 \\ 4 & 3 & 2 \end{pmatrix}.
+\]
+Le déterminant vaut $\det(A) = 2 \times 1 \times 2 = 4$.
+\end{example}
+
+\begin{example}[Échange de lignes et signe du déterminant]
+Pour
+$A = \begin{pmatrix} 0 & 2 \\ 3 & 1 \end{pmatrix}$,
+le pivot de la colonne $1$ est nul. Le pivot partiel
+échange les deux lignes ($s = 1$) :
+\[
+    P = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix},
+    \qquad
+    PA = \begin{pmatrix} 3 & 1 \\ 0 & 2 \end{pmatrix}
+    = \underbrace{I_2}_{L}\ \underbrace{\begin{pmatrix} 3 & 1 \\ 0 & 2 \end{pmatrix}}_{U}.
+\]
+Donc $\det(A) = (-1)^1 \times 3 \times 2 = -6$, ce que
+confirme la formule $2 \times 2$ :
+$0 \times 1 - 2 \times 3 = -6$.
+\end{example}
+
+\begin{example}[Inverse d'une matrice $2 \times 2$]
+Pour $A = \begin{pmatrix} 2 & 1 \\ 1 & 1 \end{pmatrix}$,
+on résout $A\vect{x} = \vect{e}_1$ et
+$A\vect{x} = \vect{e}_2$ :
+\[
+    \begin{cases} 2x + y = 1 \\ x + y = 0 \end{cases}
+    \Rightarrow \begin{pmatrix} 1 \\ -1 \end{pmatrix},
+    \qquad
+    \begin{cases} 2x + y = 0 \\ x + y = 1 \end{cases}
+    \Rightarrow \begin{pmatrix} -1 \\ 2 \end{pmatrix}.
+\]
+Ces deux solutions sont les colonnes de
+$A^{-1} = \begin{pmatrix} 1 & -1 \\ -1 & 2 \end{pmatrix}$,
+et on vérifie que $A A^{-1} = I_2$.
+\end{example}
+
+\begin{example}[Matrice singulière]
+Pour $A = \begin{pmatrix} 1 & 2 \\ 2 & 4 \end{pmatrix}$,
+la ligne $2$ vaut deux fois la ligne $1$. Après
+$L_2 \leftarrow L_2 - 2L_1$, la ligne $2$ de $U$ est
+nulle : le pivot de la colonne $2$ vaut $0$ et
+$\det(A) = 0$.
+\begin{itemize}
+    \item Avec $\vect{b} = (3, 6)^\top$, la seconde
+          équation devient $0 = 0$ : il y a une
+          infinité de solutions.
+    \item Avec $\vect{b} = (3, 7)^\top$, elle devient
+          $0 = 1$ : il n'y a aucune solution.
+\end{itemize}
+Dans les deux cas, il n'y a pas de solution
+\emph{unique}.
+\end{example}
+
+\section{Utilité dans le projet}
+
+Un réseau de neurones n'inverse jamais de matrice, et
+NNFS n'utilise pas ce chapitre directement. Il sert à
+deux étapes de MiniNumpy :
+\begin{itemize}
+    \item les \textbf{moindres carrés} (étape 4) : la
+          régression linéaire revient à résoudre les
+          équations normales $A^\top A \vect{x} = A^\top \vect{b}$,
+          un système linéaire ;
+    \item la \textbf{méthode de Newton} (étape 6), qui
+          résout un système linéaire à chaque
+          itération.
+\end{itemize}
+Le conditionnement explique aussi un phénomène qu'on
+reverra à l'entraînement : un calcul peut être
+mathématiquement juste et numériquement faux.
+
+\section{Implémentation}
+
+\begin{codebox}
+L'implémentation est l'objet de l'étape 3. Comme
+pour le produit matriciel
+(\cref{sec-matrices-implementation}), les
+algorithmes de ce chapitre utiliseront la classe
+\cpp|Matrix| sans en faire partie : ils seront
+rangés dans \texttt{mnp/linalg.hpp} et
+\texttt{src/linalg.cpp}, découpés en petites fonctions
+(recherche du pivot, échange de lignes, élimination,
+descente, remontée). Le second membre sera une
+\cpp|Matrix| $n \times m$, ce qui permet de résoudre
+plusieurs systèmes à la fois, et donc de calculer
+l'inverse en résolvant $AX = I_n$. Le traitement d'une
+matrice singulière (\cpp|std::optional| ou
+exception) reste à décider.
+\end{codebox}
+
+\newpage

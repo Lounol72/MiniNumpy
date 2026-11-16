@@ -3,14 +3,16 @@
 % =================================================
 
 \chapter{Introduction}
+\label{chap-introduction}
 
 \section{Contexte}
 
 MiniNumpy est une bibliothèque de calcul numérique
 écrite de zéro en C++20, sans dépendance extérieure.
 Elle reprend, à petite échelle, ce que fait NumPy
-en Python : manipuler des vecteurs et des matrices
-de réels et leur appliquer des opérations.
+en Python~\cite{numpy} : manipuler des vecteurs et
+des matrices de réels et leur appliquer des
+opérations.
 
 Le projet a un but final précis : réimplémenter en
 C++, avec MiniNumpy à la place de NumPy, le réseau
@@ -48,19 +50,33 @@ Chaque notion y est présentée de la même façon :
 \section{Plan}
 
 Le carnet suit l'ordre dans lequel la bibliothèque
-est construite :
+est construite. Les chapitres déjà rédigés :
 \begin{enumerate}
-    \item \textbf{Vecteurs.} Les opérations de base,
-          le produit scalaire et la norme. Un
-          neurone calcule un produit scalaire entre
-          ses entrées et ses poids.
-    \item \textbf{Matrices.} Stockage, accès aux
-          coefficients, transposée et produit
-          matriciel. Les poids d'une couche entière
-          forment une matrice, et un seul produit
-          matriciel calcule la sortie de tous les
-          neurones de la couche, pour tout un lot
-          d'images.
+    \item \textbf{Vecteurs} (\cref{chap-vecteurs}).
+          Les opérations de base, le produit
+          scalaire et la norme. Un neurone calcule
+          un produit scalaire entre ses entrées et
+          ses poids.
+    \item \textbf{Matrices} (\cref{chap-matrices}).
+          Stockage, accès aux coefficients,
+          transposée et produit matriciel. Les poids
+          d'une couche entière forment une matrice,
+          et un seul produit matriciel calcule la
+          sortie de tous les neurones de la couche,
+          pour tout un lot d'images.
+    \item \textbf{Systèmes linéaires}
+          (\cref{chap-systemes}). Pivot de Gauss,
+          décomposition LU, déterminant et inverse.
+          Ils servent aux moindres carrés et à
+          l'optimisation.
+\end{enumerate}
+
+Les chapitres à venir suivent les étapes du projet :
+moindres carrés, aléatoire et Monte Carlo,
+optimisation, valeurs propres, différentiation
+automatique. Viennent enfin les notions propres au
+réseau de neurones :
+\begin{enumerate}[resume]
     \item \textbf{Broadcasting.} La règle qui permet
           d'additionner un vecteur à chaque ligne
           d'une matrice, par exemple pour ajouter
@@ -102,7 +118,7 @@ est construite :
           à $1$ : $\mathbf{x} = (x_1, \dots, x_n)$.
           En C++, ils commencent à $0$ : la
           composante $x_i$ correspond donc à
-          \texttt{v[i-1]} dans le code.
+          \cpp|v[i-1]| dans le code.
 \end{itemize}
 
 

@@ -9,6 +9,7 @@ namespace mnp {
 double Vector::norme() const {
   return std::sqrt(this->scalaire_analytique(*this));
 }
+// carnet: debutNormalisation
 Vector Vector::normalisation() const {
   double norme = this->norme();
   if (norme == 0.0)
@@ -21,6 +22,7 @@ Vector Vector::normalisation() const {
   }
   return Vector(res);
 }
+// carnet: finNormalisation
 
 Vector Vector::operator-(const Vector &a) const {
   if (this->size() != a.size())

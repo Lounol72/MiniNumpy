@@ -3,6 +3,7 @@
 % =================================================
 
 \chapter{Les vecteurs}
+\label{chap-vecteurs}
 
 \section{Définition}
 
@@ -159,7 +160,7 @@ Avec $k = 2$ :
     = \begin{pmatrix} 2 \\ 4 \\ 4 \end{pmatrix},
     \qquad
     \frac{\vect{u}}{2} =
-    \begin{pmatrix} 0{,}5 \\ 1 \\ 1 \end{pmatrix}.
+    \begin{pmatrix} \num{0.5} \\ 1 \\ 1 \end{pmatrix}.
 \]
 \end{example}
 
@@ -227,6 +228,7 @@ $\norm{\vect{a}}\,\norm{\vect{b}}\cos\theta
 \end{example}
 
 \section{Utilité dans le projet}
+\label{sec-vecteurs-utilite}
 
 Un neurone reçoit des entrées $\vect{x} \in \R^n$,
 possède un poids par entrée, rangés dans
@@ -249,9 +251,8 @@ Voici un exemple d'implémentation en C++20.
 
 \lstinputlisting[
 language=C++,
-caption=Code d'implémentation de la fonction membre "normalisation",
-firstline=12,
-lastline=23,
+caption=Fonction membre \texttt{normalisation} (\texttt{src/Vector.cpp}),
+linerange=debutNormalisation-finNormalisation,
 numbers=left,
 breaklines=true
 ]{../../src/Vector.cpp}

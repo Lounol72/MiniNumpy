@@ -109,6 +109,7 @@ Matrix &Matrix::operator-=(const Matrix &other) {
 Matrix operator+(Matrix lhs, const Matrix &rhs) { return lhs += rhs; }
 Matrix operator-(Matrix lhs, const Matrix &rhs) { return lhs -= rhs; }
 
+// carnet: debutProduit
 Matrix Matrix::operator*(const Matrix &other) const {
   if (colonne != other.ligne)
     throw std::invalid_argument(
@@ -127,6 +128,7 @@ Matrix Matrix::operator*(const Matrix &other) const {
   }
   return res;
 }
+// carnet: finProduit
 
 Matrix operator*(const Matrix &m, const std::vector<double> &vect) {
   if (m.colonne != static_cast<int>(vect.size()))

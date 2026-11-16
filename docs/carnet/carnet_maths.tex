@@ -9,25 +9,7 @@
 \input{preambule/entetes}
 
 % =================================================
-% 8. INFORMATIONS DU DOCUMENT
-% =================================================
-
-\title{
-    \textbf{\color{blue}Le Mans Université}
-    \color{black}
-    \\ Licence Informatique
-    \\ \textit{3ème année}
-    \\ \textbf{Mini Numpy}
-}
-
-\author{
-    \href{https://lounol72.github.io/Lounol72/}{Louis Subtil}
-}
-
-\date{\today}
-
-% =================================================
-% 9. DEBUT DU DOCUMENT
+% 8. DEBUT DU DOCUMENT
 % =================================================
 
 \begin{document}
@@ -36,19 +18,41 @@
 % PAGE DE GARDE
 % -------------------------------------------------
 
-\begin{figure}
+\begin{titlepage}
+    \centering
     \includegraphics[width=0.3\textwidth]{logolemansU.png}
     \hfill
     \includegraphics[width=0.3\textwidth]{logo_IC2.png}
-\end{figure}
 
-\maketitle
+    \vspace*{\fill}
+
+    {\color{accent}\rule{\linewidth}{1pt}}
+    \vspace{1.2em}
+
+    {\fontsize{40}{48}\selectfont\bfseries\color{accent} MiniNumpy\par}
+    \vspace{0.8em}
+    {\LARGE Carnet de mathématiques\par}
+    \vspace{0.8em}
+    {\large\color{discret} Une bibliothèque de calcul numérique en C++20,\\
+     jusqu'à un réseau de neurones écrit de zéro\par}
+
+    \vspace{1.2em}
+    {\color{accent}\rule{\linewidth}{1pt}}
+
+    \vspace*{\fill}
+
+    {\Large \href{https://lounol72.github.io/Lounol72/}{Louis Subtil}\par}
+    \vspace{0.5em}
+    Licence Informatique, 3\textsuperscript{e} année\\
+    Le Mans Université\par
+    \vspace{0.5em}
+    {\color{discret}\today\par}
+\end{titlepage}
 
 % -------------------------------------------------
 % TABLE DES MATIERES
 % -------------------------------------------------
 
-\newpage
 \tableofcontents
 \newpage
 
@@ -59,6 +63,7 @@
 \input{chapitres/01-introduction}
 \input{chapitres/02-vecteurs}
 \input{chapitres/03-matrices}
+\input{chapitres/04-systemes-lineaires}
 
 % =================================================
 % BIBLIOGRAPHIE

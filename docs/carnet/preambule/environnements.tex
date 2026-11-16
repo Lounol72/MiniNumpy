@@ -2,10 +2,13 @@
 % 4. ENVIRONNEMENTS MATHEMATIQUES
 % =================================================
 
+% Un seul compteur par chapitre pour tous les blocs numérotés :
+% Définition 3.1, Exemple 3.2, Proposition 3.3...
+
 \theoremstyle{definition}
 
 \newtheorem{definition}{Définition}[chapter]
-\newtheorem{example}{Exemple}[chapter]
+\newtheorem{example}[definition]{Exemple}
 
 \theoremstyle{plain}
 
@@ -18,31 +21,54 @@
 
 \newtheorem{remark}[definition]{Remarque}
 
+% Noms utilisés par \cref
+\crefname{definition}{définition}{définitions}
+\Crefname{definition}{Définition}{Définitions}
+\crefname{example}{exemple}{exemples}
+\Crefname{example}{Exemple}{Exemples}
+\crefname{theorem}{théorème}{théorèmes}
+\Crefname{theorem}{Théorème}{Théorèmes}
+\crefname{proposition}{proposition}{propositions}
+\Crefname{proposition}{Proposition}{Propositions}
+\crefname{remark}{remarque}{remarques}
+\Crefname{remark}{Remarque}{Remarques}
+
+% Définitions et exemples : un trait vertical à gauche pour les repérer
+\tcolorboxenvironment{definition}{
+    blanker, breakable,
+    borderline west={2pt}{0pt}{accent},
+    left=10pt, before skip=8pt, after skip=8pt
+}
+\tcolorboxenvironment{example}{
+    blanker, breakable,
+    borderline west={2pt}{0pt}{discret!60},
+    left=10pt, before skip=8pt, after skip=8pt
+}
+
 % =================================================
 % 5. ENCADRES PERSONNALISES
 % =================================================
 
 \newtcolorbox{importantbox}{
     breakable,
-    colback=red!5,
-    colframe=red!60!black,
+    colback=alerte!4,
+    colframe=alerte,
     title=À retenir,
     fonttitle=\bfseries
 }
 
 \newtcolorbox{methodbox}{
     breakable,
-    colback=green!5,
-    colframe=green!50!black,
+    colback=methode!4,
+    colframe=methode,
     title=Méthode,
     fonttitle=\bfseries
 }
 
 \newtcolorbox{codebox}{
     breakable,
-    colback=gray!5,
-    colframe=gray!60,
+    colback=fondcode,
+    colframe=discret,
     title=Implémentation informatique,
     fonttitle=\bfseries
 }
-

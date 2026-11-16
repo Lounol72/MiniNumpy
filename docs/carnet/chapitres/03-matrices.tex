@@ -1,5 +1,6 @@
 
 \chapter{Les matrices}
+\label{chap-matrices}
 
 \section{Définition}
 
@@ -179,15 +180,17 @@ $A \odot B \in \R^{m \times n}$ définie par
 \end{definition}
 
 \begin{importantbox}
-Ce n'est \emph{pas} le produit matriciel défini
-ci-dessous. Attention à NumPy : l'opérateur
-\texttt{*} y calcule $A \odot B$, et c'est
-\texttt{@} (ou \texttt{np.dot}) qui calcule $AB$.
+Ce n'est \emph{pas} le produit matriciel de la
+\cref{def-produit-matriciel}. Attention à
+NumPy~\cite{numpy} : l'opérateur \texttt{*} y calcule
+$A \odot B$, et c'est \texttt{@} (ou
+\texttt{np.dot}) qui calcule $AB$.
 \end{importantbox}
 
 \subsection{Produit matriciel}
 
 \begin{definition}[Produit matriciel]
+\label{def-produit-matriciel}
 Soient $A \in \R^{m \times n}$ et
 $B \in \R^{n \times p}$. Le \emph{produit}
 $AB \in \R^{m \times p}$ est défini par
@@ -240,7 +243,8 @@ sont en général différents.
 
 \subsection{Produit d'une matrice par un vecteur}
 
-\begin{definition}
+\begin{definition}[Produit matrice-vecteur]
+\label{def-matrice-vecteur}
 Soient $A \in \R^{m \times n}$ et $\vect{x} \in \R^n$.
 En voyant $\vect{x}$ comme une matrice de
 $\R^{n \times 1}$, le produit $A\vect{x}$ est un
@@ -275,3 +279,228 @@ coefficients diagonaux :
 Par exemple, $\operatorname{tr}(I_n) = n$.
 \end{definition}
 
+\section{Exemples calculés à la main}
+
+Tous les exemples utilisent les trois matrices
+\[
+    A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix},
+    \qquad
+    B = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix},
+    \qquad
+    C = \begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{pmatrix}.
+\]
+$A$ et $B$ sont des matrices $2 \times 2$, et $C$ est
+une matrice $2 \times 3$.
+
+\begin{example}[Addition, soustraction et multiplication par un réel]
+\[
+    A + B = \begin{pmatrix} 1 & 3 \\ 4 & 4 \end{pmatrix},
+    \qquad
+    A - B = \begin{pmatrix} 1 & 1 \\ 2 & 4 \end{pmatrix},
+    \qquad
+    2A = \begin{pmatrix} 2 & 4 \\ 6 & 8 \end{pmatrix}.
+\]
+En revanche, $A + C$ n'est pas défini : $A$ est
+$2 \times 2$ et $C$ est $2 \times 3$.
+\end{example}
+
+\begin{example}[Transposées]
+\[
+    A^\top = \begin{pmatrix} 1 & 3 \\ 2 & 4 \end{pmatrix},
+    \qquad
+    C^\top = \begin{pmatrix} 1 & 4 \\ 2 & 5 \\ 3 & 6 \end{pmatrix}.
+\]
+$C^\top$ est une matrice $3 \times 2$ : la première
+ligne de $C$ est devenue sa première colonne.
+$B^\top = B$, donc $B$ est symétrique.
+\end{example}
+
+\begin{example}[Produit de Hadamard et trace]
+\[
+    A \odot B =
+    \begin{pmatrix} 1 \times 0 & 2 \times 1 \\ 3 \times 1 & 4 \times 0 \end{pmatrix}
+    = \begin{pmatrix} 0 & 2 \\ 3 & 0 \end{pmatrix},
+    \qquad
+    \operatorname{tr}(A) = 1 + 4 = 5,
+    \qquad
+    \operatorname{tr}(B) = 0.
+\]
+\end{example}
+
+\begin{example}[Le produit n'est pas commutatif]
+\[
+    AB =
+    \begin{pmatrix}
+        1 \times 0 + 2 \times 1 & 1 \times 1 + 2 \times 0 \\
+        3 \times 0 + 4 \times 1 & 3 \times 1 + 4 \times 0
+    \end{pmatrix}
+    = \begin{pmatrix} 2 & 1 \\ 4 & 3 \end{pmatrix},
+    \qquad
+    BA = \begin{pmatrix} 3 & 4 \\ 1 & 2 \end{pmatrix}.
+\]
+On a bien $AB \neq BA$. Multiplier par $B$
+\emph{à droite} échange les colonnes de $A$, et
+multiplier par $B$ \emph{à gauche} échange ses
+lignes. $B$ est une \emph{matrice de permutation} :
+on la retrouvera au \cref{chap-systemes}.
+\end{example}
+
+\begin{example}[Tailles des produits]
+Pour chaque produit, on compare les dimensions
+intérieures :
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+    \toprule
+    Produit & Tailles & Existe ? & Taille du résultat \\
+    \midrule
+    $AC$ & $(2 \times 2)(2 \times 3)$ & oui & $2 \times 3$ \\
+    $CA$ & $(2 \times 3)(2 \times 2)$ & non : $3 \neq 2$ & --- \\
+    $C^\top A$ & $(3 \times 2)(2 \times 2)$ & oui & $3 \times 2$ \\
+    $C C^\top$ & $(2 \times 3)(3 \times 2)$ & oui & $2 \times 2$ \\
+    $C^\top C$ & $(3 \times 2)(2 \times 3)$ & oui & $3 \times 3$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
+Par exemple,
+$C C^\top = \begin{pmatrix} 14 & 32 \\ 32 & 77 \end{pmatrix}$ :
+le coefficient $(1, 1)$ vaut
+$1^2 + 2^2 + 3^2 = 14$, c'est le carré de la norme de
+la première ligne de $C$.
+\end{example}
+
+\begin{example}[Transposée d'un produit]
+\[
+    AC =
+    \begin{pmatrix}
+        1 + 8 & 2 + 10 & 3 + 12 \\
+        3 + 16 & 6 + 20 & 9 + 24
+    \end{pmatrix}
+    = \begin{pmatrix} 9 & 12 & 15 \\ 19 & 26 & 33 \end{pmatrix},
+    \qquad
+    (AC)^\top = \begin{pmatrix} 9 & 19 \\ 12 & 26 \\ 15 & 33 \end{pmatrix}.
+\]
+On vérifie le premier coefficient de $C^\top A^\top$ :
+la ligne $1$ de $C^\top$ est $(1, 4)$, la colonne $1$
+de $A^\top$ est $(1, 2)^\top$, et
+$1 \times 1 + 4 \times 2 = 9$. On retrouve bien
+$(AC)^\top = C^\top A^\top$. L'ordre doit s'inverser :
+$A^\top C^\top$ n'existe même pas, car
+$(2 \times 2)(3 \times 2)$ n'a pas les bonnes
+dimensions intérieures.
+\end{example}
+
+\begin{example}[Produit d'une matrice par un vecteur]
+\[
+    A \begin{pmatrix} 1 \\ 1 \end{pmatrix}
+    = \begin{pmatrix} 1 + 2 \\ 3 + 4 \end{pmatrix}
+    = \begin{pmatrix} 3 \\ 7 \end{pmatrix}.
+\]
+Multiplier par le vecteur $(1, 1)^\top$ fait la somme
+de chaque ligne.
+\end{example}
+
+\section{Utilité dans le projet}
+
+Comme dans NNFS~\cite{nnfs}, une couche de neurones
+reçoit un \emph{lot} de $N$
+exemples. On range ces exemples dans une matrice
+$X \in \R^{N \times n}$ : une ligne par exemple, une
+colonne par entrée. Les poids de la couche forment une
+matrice $W \in \R^{n \times p}$ : une ligne par entrée
+et une colonne par neurone. La sortie de la couche,
+avant la fonction d'activation, est
+\[
+    Z = X W + \vect{b},
+    \qquad
+    \underbrace{(N \times n)}_{X}
+    \cdot
+    \underbrace{(n \times p)}_{W}
+    = \underbrace{(N \times p)}_{Z}.
+\]
+Le coefficient $z_{ij}$ est le produit scalaire de
+l'exemple $i$ et des poids du neurone $j$ : on retrouve
+le calcul du neurone seul
+(\cref{sec-vecteurs-utilite}), fait
+d'un coup pour tous les neurones et tous les exemples.
+L'ajout du biais $\vect{b} \in \R^p$ à chaque ligne
+de $XW$ est le \emph{broadcasting}.
+
+La transposée servira à la rétropropagation : le
+gradient par rapport aux poids s'écrit avec $X^\top$.
+Le produit matriciel est l'opération la plus appelée
+du projet, et c'est pour cette raison que sa vitesse
+a été mesurée.
+
+\section{Implémentation}
+\label{sec-matrices-implementation}
+
+\subsection{Stockage à plat}
+
+Une matrice $m \times n$ est rangée dans un
+\textbf{seul} tableau de $m \times n$ réels, ligne
+après ligne (\emph{rangement par lignes}, comme en C++
+et dans NumPy). Avec les indices du C++, qui
+commencent à $0$, l'élément de la ligne $i$ et de la
+colonne $j$ se trouve à la position
+\[
+    i \times n + j.
+\]
+Pour la matrice $C$ ci-dessus, le tableau est
+$(1, 2, 3, 4, 5, 6)$ et l'élément $c_{23} = 6$
+(indices C++ $i = 1$, $j = 2$) est à la position
+$1 \times 3 + 2 = 5$.
+
+\begin{remark}
+Un \cpp|vector<vector<double>>| ferait une
+allocation par ligne, avec des lignes dispersées en
+mémoire, et rien ne garantirait qu'elles aient toutes
+la même longueur~\cite{cppreference}. Le tableau à
+plat fait une seule allocation, et des éléments
+voisins dans une ligne sont voisins en mémoire.
+\end{remark}
+
+\subsection{Ordre des boucles du produit}
+
+La formule $(AB)_{ij} = \sum_k a_{ik} b_{kj}$ se code
+avec trois boucles imbriquées sur $i$, $j$ et $k$.
+L'ordre de ces boucles ne change pas le résultat, mais
+il change beaucoup le temps de calcul :
+\begin{itemize}
+    \item dans l'ordre $i, j, k$, la boucle intérieure
+          fait varier $k$ et lit $b_{kj}$ en sautant
+          de $p$ cases à chaque tour, c'est-à-dire
+          une colonne de $B$ ;
+    \item dans l'ordre $i, k, j$, la boucle intérieure
+          fait varier $j$ : elle lit une ligne de $B$
+          et écrit une ligne du résultat, dans des
+          cases voisines en mémoire.
+\end{itemize}
+Le processeur charge la mémoire par blocs de 64 octets
+(8 réels). Dans le second ordre, chaque bloc chargé
+sert 8 fois, et le compilateur peut traiter plusieurs
+réels par instruction.
+
+\begin{importantbox}
+Mesure du 16 novembre, produit de deux matrices
+$500 \times 500$ (environ $2 \times 500^3$, soit
+250 millions d'opérations), compilé en \texttt{-O2} :
+environ \qty{59}{\ms} dans l'ordre $i, j, k$ et \qty{21}{\ms} dans
+l'ordre $i, k, j$, soit près de 3 fois plus rapide.
+\end{importantbox}
+
+\begin{codebox}
+Le produit matriciel de MiniNumpy, dans l'ordre
+$i, k, j$. La fonction privée \cpp|idx(i, j)|
+calcule la position $i \times n + j$ dans le tableau
+à plat.
+\end{codebox}
+
+\lstinputlisting[
+language=C++,
+caption=Produit matriciel (\texttt{src/Matrix.cpp}),
+linerange=debutProduit-finProduit,
+numbers=left,
+breaklines=true
+]{../../src/Matrix.cpp}
+
+\newpage

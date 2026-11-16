@@ -4,12 +4,36 @@
 
 \setstretch{1.15}
 
+% Palette : toutes les couleurs du carnet viennent d'ici
+\definecolor{accent}{RGB}{31,78,121}     % titres, liens, définitions
+\definecolor{alerte}{RGB}{166,48,40}     % encadrés « À retenir »
+\definecolor{methode}{RGB}{36,110,80}    % encadrés « Méthode »
+\definecolor{discret}{RGB}{110,110,110}  % code, exemples, éléments secondaires
+\definecolor{fondcode}{RGB}{246,246,246}
+
 \hypersetup{
     colorlinks=true,
-    linkcolor=blue!60!black,
-    citecolor=green!40!black,
-    urlcolor=blue!70!black,
+    linkcolor=accent,
+    citecolor=methode,
+    urlcolor=accent,
     pdftitle={MiniNumpy - Carnet de mathématiques},
     pdfauthor={Louis Subtil}
 }
 
+% Table des matières : chapitres et sections seulement
+\setcounter{tocdepth}{1}
+
+% Nombres et unités à la française : \num{0.5} -> 0,5 ; \qty{21}{\ms} -> 21 ms
+\sisetup{locale=FR}
+\DeclareSIUnit{\ms}{\milli\second}
+
+% Titres
+\titleformat{\chapter}[display]
+    {\normalfont\bfseries\color{accent}}
+    {\large\MakeUppercase{\chaptertitlename}~\thechapter}
+    {4pt}
+    {\Huge}
+    [\vspace{2pt}{\color{accent}\titlerule[1pt]}]
+\titlespacing*{\chapter}{0pt}{-10pt}{24pt}
+\titleformat*{\section}{\normalfont\Large\bfseries\color{accent}}
+\titleformat*{\subsection}{\normalfont\large\bfseries}
