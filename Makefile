@@ -11,6 +11,7 @@ TARGET = main
 TARGET_VECTEUR = main_vector
 TARGET_TEST = main_tests
 TARGET_MATRIX = main_matrix
+TARGET_LINALG = main_linalg
 
 # Fichiers source et objets
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
@@ -23,7 +24,7 @@ CXX = g++
 MODEFLAGS ?= -g -fsanitize=address,undefined
 CXXFLAGS = -std=c++20 -Wall -Wextra -Werror $(MODEFLAGS) -MMD -MP
 
-EXES = $(TARGET) $(TARGET_VECTEUR) $(TARGET_TEST) $(TARGET_MATRIX)
+EXES = $(TARGET) $(TARGET_VECTEUR) $(TARGET_TEST) $(TARGET_MATRIX) ${TARGET_LINALG}
 LIB = $(BUILD_DIR)/libmnp.a
 
 all: $(EXES)

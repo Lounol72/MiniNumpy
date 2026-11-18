@@ -51,6 +51,8 @@ public:
 
   int nbLignes() const { return ligne; }
   int nbColonne() const { return colonne; }
+  std::vector<double> getLigne(int index) const;
+  std::vector<double> getCol(int index) const;
 
   // ========================================================================
   // Accès aux éléments

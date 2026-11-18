@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace mnp {
 
@@ -82,6 +84,26 @@ const double &Matrix::operator()(int i, int j) const {
   if (i < 0 || i >= ligne || j < 0 || j >= colonne)
     throw std::invalid_argument("Error: invalid index not in matrix");
   return m_values[idx(i, j)];
+}
+
+std::vector<double> Matrix::getLigne(int index) const {
+  if (index < 0 || index >= ligne)
+    throw std::out_of_range("Error: invalid index <" + std::to_string(index) +
+                            "> doesn't exist");
+  auto debut = m_values.begin() + idx(index,0);
+  return { debut, debut + colonne};
+}
+
+std::vector<double> Matrix::getCol(int index) const {
+  if (index < 0 || index >= colonne)
+    throw std::out_of_range("Error: invalid index <" + std::to_string(index) +
+                            "> doesn't exist");
+  std::vector<double> res;
+  res.reserve(ligne);
+  for (int i = 0; i < ligne; i++) {
+    res.push_back(m_values[idx(i, index)]);
+  }
+  return res;
 }
 
 // ==========================================================================
