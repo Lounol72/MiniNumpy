@@ -1,7 +1,9 @@
+#include "mnp/Linalg.hpp"
 #include <cmath>
 #include <numbers>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "doctest/doctest.h"
@@ -431,8 +433,7 @@ TEST_CASE("Matrice : produit, comparaison avec un calcul de référence") {
 
   SUBCASE("non carrées : (2x3) * (3x4)") {
     mnp::Matrix a = fabriquer({{1, -2, 3}, {0.5, 4, -1}});
-    mnp::Matrix b = fabriquer(
-        {{2, 0, 1, -3}, {1, 1, 0, 2}, {-1, 5, 2, 0.25}});
+    mnp::Matrix b = fabriquer({{2, 0, 1, -3}, {1, 1, 0, 2}, {-1, 5, 2, 0.25}});
     CHECK(a * b == fabriquer({{-3, 13, 7, -6.25}, {6, -1, -1.5, 6.25}}));
     CHECK(a * b == reference(a, b));
   }
@@ -491,7 +492,8 @@ TEST_CASE("Matrice : calculs à la main de la note") {
   const mnp::Matrix B({{0, 1}, {1, 0}});
   const mnp::Matrix C({{1, 2, 3}, {4, 5, 6}});
 
-  SUBCASE("1. AB et BA : B à droite échange les colonnes, à gauche les lignes") {
+  SUBCASE(
+      "1. AB et BA : B à droite échange les colonnes, à gauche les lignes") {
     CHECK(A * B == mnp::Matrix({{2, 1}, {4, 3}}));
     CHECK(B * A == mnp::Matrix({{3, 4}, {1, 2}}));
     CHECK_FALSE_MESSAGE(A * B == B * A, "Le produit n'est pas commutatif");
@@ -578,4 +580,15 @@ TEST_CASE("Matrice : cas limites 1x1 et 1xn") {
           mnp::Matrix({{4, 5, 6}, {8, 10, 12}, {12, 15, 18}}));
     CHECK_THROWS_AS(ligne * autre, std::invalid_argument);
   }
+}
+
+TEST_CASE("Systemes lineaires") {
+  const mnp::Matrix systeme({{2, 1, -1}, {-3, -1, 2}, {-2, 1, 2}});
+  const std::vector<double> vector_equal = {8, -11, 3};
+  std::vector<double> v = {2, 3, -1};
+  const auto x = mnp::solve(systeme, vector_equal);
+  REQUIRE(x.size() == 3);
+  CHECK(x[0] == doctest::Approx(2));
+  CHECK(x[1] == doctest::Approx(3));
+  CHECK(x[2] == doctest::Approx(-1));
 }
