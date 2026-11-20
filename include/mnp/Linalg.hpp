@@ -13,4 +13,6 @@ namespace mnp {
  */
 std::vector<double> solve(const mnp::Matrix &m, const std::vector<double> &v);
 
+std::vector<double> remontee(const mnp::Matrix &m);
+
 } // namespace mnp
