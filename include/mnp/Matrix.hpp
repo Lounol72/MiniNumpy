@@ -50,8 +50,27 @@ public:
   /// Transposée : (i, j) → (j, i)
   Matrix transpose() const;
 
-  Matrix &ajouterColonne(const mnp::Vector v);
-  Matrix &ajouterLigne(const mnp::Vector v);
+  /**
+   * @brief Ajoute v comme dernière colonne : n × p devient n × (p + 1)
+   *
+   * Sur place : le tableau est agrandi, puis les éléments sont décalés de la
+   * fin vers le début (la ligne i avance de i cases). Coût O(n·p).
+   * @return *this, pour enchaîner les appels
+   * @throw std::invalid_argument si v n'a pas nbLignes() éléments (la matrice
+   * n'est alors pas modifiée)
+   */
+  Matrix &ajouterColonne(const mnp::Vector &v);
+
+  /**
+   * @brief Ajoute v comme dernière ligne : n × p devient (n + 1) × p
+   *
+   * Les éléments de v sont ajoutés à la fin du stockage par lignes, sans
+   * déplacer les autres. Coût O(p).
+   * @return *this, pour enchaîner les appels
+   * @throw std::invalid_argument si v n'a pas nbColonne() éléments (la matrice
+   * n'est alors pas modifiée)
+   */
+  Matrix &ajouterLigne(const mnp::Vector &v);
   int nbLignes() const { return ligne; }
   int nbColonne() const { return colonne; }
   std::vector<double> getLigne(int index) const;

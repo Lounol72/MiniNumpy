@@ -74,13 +74,35 @@ Matrix Matrix::transpose() const {
 // Accès aux éléments
 // ==========================================================================
 
-Matrix &Matrix::ajouterColonne(const mnp::Vector v) {
-  if (static_cast<int>(v.size()) != ligne)
+Matrix &Matrix::ajouterColonne(const mnp::Vector &v) {
+  if (static_cast<int>(v.size()) != ligne) {
     throw std::invalid_argument("Error: cannot add column if not same size");
+  }
+  const int nouvelles = colonne + 1;
+  // Si resize lève une exception (mémoire pleine), rien n'a encore changé
+  m_values.resize(ligne * nouvelles);
+
+  // L'élément (i, j) passe de la position i·colonne + j à i·(colonne+1) + j :
+  // il avance de i cases (une par ligne au-dessus de lui, qui a grandi).
+  // Sa destination n'est jamais avant sa source, donc en parcourant de la
+  // fin vers le début, on n'écrase jamais un élément pas encore déplacé.
+  for (int i = ligne - 1; i >= 0; i--) {
+    m_values[i * nouvelles + colonne] = v[i]; // la nouvelle case, en fin de ligne
+    for (int j = colonne - 1; j >= 0; j--)
+      m_values[i * nouvelles + j] = m_values[idx(i, j)]; // idx : ancien colonne
+  }
+
+  colonne = nouvelles; // seulement maintenant : idx() lisait l'ancien stockage
+  return *this;
 }
-Matrix &Matrix::ajouterLigne(const mnp::Vector v) {
-  if (static_cast<int>(v.size()) != colonne)
+Matrix &Matrix::ajouterLigne(const mnp::Vector &v) {
+  if (static_cast<int>(v.size()) != colonne) {
     throw std::invalid_argument("Error: cannot add line if not same size");
+  }
+
+  m_values.insert(m_values.end(), v.begin(), v.end());
+  ligne++;
+  return *this;
 }
 
 double &Matrix::at(int i, int j) {

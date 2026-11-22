@@ -718,3 +718,113 @@ TEST_CASE("Vecteur : ajouter") {
     somme += x;
   CHECK(somme == doctest::Approx(7.0));
 }
+
+// ==========================================================================
+// Matrix::ajouterLigne
+// ==========================================================================
+
+TEST_CASE("Matrice : ajouterLigne") {
+  mnp::Matrix m({{1, 2}});
+  m.ajouterLigne(mnp::Vector({3, 4}));
+  CHECK(m.nbLignes() == 2);
+  CHECK(m.nbColonne() == 2);
+  CHECK(m == mnp::Matrix({{1, 2}, {3, 4}}));
+  CHECK(m.getLigne(1) == std::vector<double>({3, 4}));
+  CHECK_MESSAGE(m.getLigne(0) == std::vector<double>({1, 2}),
+                "Les lignes existantes ne doivent pas bouger");
+}
+
+TEST_CASE("Matrice : ajouterLigne sur une matrice non carrée") {
+  // 2×3 → 3×3 : la ligne ajoutée a autant d'éléments que de colonnes
+  mnp::Matrix m({{1, 2, 3}, {4, 5, 6}});
+  m.ajouterLigne(mnp::Vector({7, 8, 9}));
+  CHECK(m == mnp::Matrix({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
+  CHECK(m.getColonne(2) == std::vector<double>({3, 6, 9}));
+}
+
+TEST_CASE("Matrice : ajouterLigne enchaîné") {
+  mnp::Matrix m({{1, 2}});
+  m.ajouterLigne(mnp::Vector({3, 4})).ajouterLigne(mnp::Vector({5, 6}));
+  CHECK(m.nbLignes() == 3);
+  CHECK(m == mnp::Matrix({{1, 2}, {3, 4}, {5, 6}}));
+  CHECK_MESSAGE(&m.ajouterLigne(mnp::Vector({7, 8})) == &m,
+                "ajouterLigne doit renvoyer la matrice elle-même (*this)");
+}
+
+TEST_CASE("Matrice : ajouterLigne à partir d'une matrice vide") {
+  // Construire une matrice ligne par ligne, en partant de 0 ligne
+  mnp::Matrix m(0, 3);
+  m.ajouterLigne(mnp::Vector({1, 2, 3}));
+  m.ajouterLigne(mnp::Vector({4, 5, 6}));
+  CHECK(m.nbLignes() == 2);
+  CHECK(m == mnp::Matrix({{1, 2, 3}, {4, 5, 6}}));
+}
+
+TEST_CASE("Matrice : ajouterLigne, taille fausse") {
+  mnp::Matrix m({{1, 2}, {3, 4}});
+  const mnp::Matrix copie = m;
+  CHECK_THROWS_AS(m.ajouterLigne(mnp::Vector({1, 2, 3})),
+                  std::invalid_argument);
+  CHECK_THROWS_AS(m.ajouterLigne(mnp::Vector({1})), std::invalid_argument);
+  CHECK_THROWS_AS(m.ajouterLigne(mnp::Vector({})), std::invalid_argument);
+  // Garantie forte : une exception laisse la matrice intacte
+  CHECK(m.nbLignes() == 2);
+  CHECK(m == copie);
+}
+
+// ==========================================================================
+// Matrix::ajouterColonne
+// ==========================================================================
+
+TEST_CASE("Matrice : ajouterColonne") {
+  mnp::Matrix m({{1, 2}, {3, 4}});
+  m.ajouterColonne(mnp::Vector({5, 6}));
+  CHECK(m.nbLignes() == 2);
+  CHECK(m.nbColonne() == 3);
+  CHECK(m == mnp::Matrix({{1, 2, 5}, {3, 4, 6}}));
+  CHECK(m.getColonne(2) == std::vector<double>({5, 6}));
+}
+
+TEST_CASE("Matrice : ajouterColonne sur 3 lignes (décalage croissant)") {
+  // Chaque ligne i avance de i cases dans le stockage : c'est ce test qui
+  // vérifie que la ligne 2 est décalée de 2, et pas de 1
+  mnp::Matrix m({{1, 2}, {3, 4}, {5, 6}});
+  m.ajouterColonne(mnp::Vector({7, 8, 9}));
+  CHECK(m == mnp::Matrix({{1, 2, 7}, {3, 4, 8}, {5, 6, 9}}));
+  CHECK(m.getColonne(m.nbColonne() - 1) == std::vector<double>({7, 8, 9}));
+  CHECK_MESSAGE(m.getColonne(0) == std::vector<double>({1, 3, 5}),
+                "Les colonnes existantes ne doivent pas bouger");
+}
+
+TEST_CASE("Matrice : ajouterColonne enchaîné") {
+  mnp::Matrix m({{1}, {2}});
+  m.ajouterColonne(mnp::Vector({3, 4})).ajouterColonne(mnp::Vector({5, 6}));
+  CHECK(m == mnp::Matrix({{1, 3, 5}, {2, 4, 6}}));
+  CHECK_MESSAGE(&m.ajouterColonne(mnp::Vector({7, 8})) == &m,
+                "ajouterColonne doit renvoyer la matrice elle-même (*this)");
+}
+
+TEST_CASE("Matrice : ajouterColonne à partir de 0 colonne") {
+  // Cas qui divisait par zéro dans la première version
+  mnp::Matrix m(2, 0);
+  m.ajouterColonne(mnp::Vector({1, 2}));
+  CHECK(m.nbColonne() == 1);
+  CHECK(m == mnp::Matrix({{1}, {2}}));
+}
+
+TEST_CASE("Matrice : ajouterColonne, taille fausse") {
+  mnp::Matrix m({{1, 2}, {3, 4}});
+  const mnp::Matrix copie = m;
+  CHECK_THROWS_AS(m.ajouterColonne(mnp::Vector({1, 2, 3})),
+                  std::invalid_argument);
+  CHECK_THROWS_AS(m.ajouterColonne(mnp::Vector({1})), std::invalid_argument);
+  // Garantie forte : une exception laisse la matrice intacte
+  CHECK(m.nbColonne() == 2);
+  CHECK(m == copie);
+}
+
+TEST_CASE("Matrice : ajouterColonne puis ajouterLigne") {
+  mnp::Matrix m({{1}});
+  m.ajouterColonne(mnp::Vector({2})).ajouterLigne(mnp::Vector({3, 4}));
+  CHECK(m == mnp::Matrix({{1, 2}, {3, 4}}));
+}
