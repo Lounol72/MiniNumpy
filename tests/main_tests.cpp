@@ -6,6 +6,7 @@
 #include <numbers>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
@@ -827,4 +828,61 @@ TEST_CASE("Matrice : ajouterColonne puis ajouterLigne") {
   mnp::Matrix m({{1}});
   m.ajouterColonne(mnp::Vector({2})).ajouterLigne(mnp::Vector({3, 4}));
   CHECK(m == mnp::Matrix({{1, 2}, {3, 4}}));
+}
+
+// ==========================================================================
+// Matrix : affectation (possible depuis que ligne et colonne ne sont plus const)
+// ==========================================================================
+
+TEST_CASE("Matrice : affectation a = b") {
+  mnp::Matrix a({{1, 2}, {3, 4}});
+  const mnp::Matrix b({{5, 6}, {7, 8}});
+
+  SUBCASE("Même taille") {
+    a = b;
+    CHECK(a == b);
+  }
+
+  SUBCASE("Taille différente : a prend la taille de b") {
+    const mnp::Matrix grande({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    a = grande;
+    CHECK(a.nbLignes() == 3);
+    CHECK(a.nbColonne() == 3);
+    CHECK(a == grande);
+  }
+
+  SUBCASE("Copie indépendante : modifier a ne modifie pas b") {
+    mnp::Matrix c({{0, 0}, {0, 0}});
+    c = a;
+    c(0, 0) = 42;
+    CHECK(a(0, 0) == 1);
+  }
+
+  SUBCASE("Auto-affectation") {
+    const mnp::Matrix avant = a;
+    mnp::Matrix &ref = a; // passer par une référence évite l'avertissement
+    a = ref;              // -Wself-assign-overloaded de certains compilateurs
+    CHECK(a == avant);
+  }
+
+  SUBCASE("Affectation par déplacement") {
+    mnp::Matrix source({{9, 9, 9}});
+    a = std::move(source);
+    CHECK(a.nbLignes() == 1);
+    CHECK(a == mnp::Matrix({{9, 9, 9}}));
+  }
+}
+
+TEST_CASE("Matrice : affectation dans un std::vector<Matrix>") {
+  // Ne compilait pas quand ligne et colonne étaient const
+  std::vector<mnp::Matrix> v = {mnp::Matrix::identity(2), mnp::Matrix(3, 3)};
+  v.erase(v.begin()); // décale les éléments : il faut l'affectation
+  CHECK(v.size() == 1);
+  CHECK(v[0].nbLignes() == 3);
+  std::swap(v[0], v[0]);
+  mnp::Matrix x = mnp::Matrix::identity(2);
+  mnp::Matrix y(3, 3);
+  std::swap(x, y);
+  CHECK(x.nbLignes() == 3);
+  CHECK(y.isIdentity());
 }
