@@ -1,118 +1,149 @@
 #pragma once
 
-#include <cmath>
+#include <cstddef>
 #include <ostream>
-#include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace mnp {
 
 class Vector {
 public:
-  explicit Vector(std::vector<double> vec) : m_eles(vec) {}
+  // ========================================================================
+  // Constructeur
+  // ========================================================================
 
+  /// Prend le std::vector par valeur puis le déplace : une seule copie au plus
+  explicit Vector(std::vector<double> vec) : m_eles(std::move(vec)) {}
+
+  // ========================================================================
+  // Propriétés
+  // ========================================================================
+
+  std::size_t size() const { return m_eles.size(); }
+
+  /// Norme euclidienne ‖u‖ = √(u·u)
   double norme() const;
+
+  /**
+   * @brief u / ‖u‖
+   * @throw std::invalid_argument si u est le vecteur nul
+   */
   Vector normalisation() const;
 
-  double scalaire_analytique(const Vector &x) const {
-    if (this->size() != x.size())
-      throw std::invalid_argument(
-          "Les deux vecteurs ne sont pas de la même taille");
-    double res = 0;
-    for (int i = 0; i < static_cast<int>(x.size()); i++) {
-      res += this->m_eles[i] * x.m_eles[i];
-    }
-    return res;
-  }
-  double scalaire_geometrique(const Vector &x) const {
-    if (this->size() != x.size())
-      throw std::invalid_argument(
-          "Les deux vecteurs ne sont pas de la même taille");
+  /**
+   * @brief Produit scalaire Σ uᵢ·xᵢ
+   * @throw std::invalid_argument si les tailles diffèrent
+   */
+  double scalaire_analytique(const Vector &x) const;
 
-    double normes_mult = this->norme() * x.norme();
-    double angle = std::acos(this->scalaire_analytique(x) / (normes_mult));
-    double res = normes_mult * std::cos(angle);
-    return res;
-  }
+  /**
+   * @brief Angle θ ∈ [0, π] entre u et x, en radians
+   *
+   * cos θ est écrêté dans [-1, 1] avant acos : pour deux vecteurs colinéaires,
+   * l'arrondi peut donner 1.0000000000000002, et acos renverrait NaN.
+   * @throw std::invalid_argument si les tailles diffèrent ou si un vecteur est
+   * nul (l'angle n'est pas défini)
+   */
+  double angle(const Vector &x) const;
 
-  /// Operators
-  Vector &operator+=(const Vector &x) {
-    if (this->size() != x.size())
-      throw std::invalid_argument(
-          "Les deux vecteurs ne sont pas de la même taille");
-    for (int i = 0; i < static_cast<int>(this->size()); i++) {
-      m_eles[i] += x.m_eles.at(i);
-    }
-    return *this;
-  }
-  Vector &operator-=(const Vector &x) {
-    if (this->size() != x.size())
-      throw std::invalid_argument(
-          "Les deux vecteurs ne sont pas de la même taille");
-    for (int i = 0; i < static_cast<int>(this->size()); i++) {
-      m_eles[i] -= x.m_eles.at(i);
-    }
-    return *this;
-  }
-  friend Vector operator+(Vector lhs, const Vector &rhs) {
-    lhs += rhs;
-    return lhs;
-  }
-  Vector operator-(const Vector &a) const;
-  Vector operator*(const Vector &a) const;
-  /// unary Operators
-  Vector operator+() const;
+  /**
+   * @brief Produit scalaire par la formule ‖u‖·‖x‖·cos θ
+   *
+   * θ est lui-même calculé à partir du produit analytique : cette fonction
+   * illustre la formule mais ne calcule rien de plus que scalaire_analytique.
+   * Vaut 0 si l'un des vecteurs est nul.
+   * @throw std::invalid_argument si les tailles diffèrent
+   */
+  double scalaire_geometrique(const Vector &x) const;
+
+  // ========================================================================
+  // Accès aux éléments
+  // ========================================================================
+
+  /// @throw std::out_of_range si index n'est pas dans [0, size())
+  double &operator[](int index);
+  double operator[](int index) const;
+
+  // ========================================================================
+  // Opérateurs composés (modifient le vecteur)
+  // ========================================================================
+
+  /// @throw std::invalid_argument si les tailles diffèrent
+  Vector &operator+=(const Vector &x);
+  /// @throw std::invalid_argument si les tailles diffèrent
+  Vector &operator-=(const Vector &x);
+  /// Produit élément par élément (comme `*` de NumPy)
+  /// @throw std::invalid_argument si les tailles diffèrent
+  Vector &operator*=(const Vector &x);
+  Vector &operator*=(double a);
+  Vector &operator/=(double a);
+
+  // ========================================================================
+  // Opérateurs binaires : forme canonique, construits à partir des composés
+  // ========================================================================
+
+  friend Vector operator+(Vector lhs, const Vector &rhs) { return lhs += rhs; }
+  friend Vector operator-(Vector lhs, const Vector &rhs) { return lhs -= rhs; }
+  friend Vector operator*(Vector lhs, const Vector &rhs) { return lhs *= rhs; }
+  friend Vector operator*(Vector x, double a) { return x *= a; }
+  friend Vector operator*(double a, Vector x) { return x *= a; }
+  friend Vector operator/(Vector x, double a) { return x /= a; }
+  /// a / v calcule a / vᵢ pour chaque élément (comme NumPy)
+  friend Vector operator/(double a, Vector x);
+
+  Vector operator+() const { return *this; }
   Vector operator-() const;
 
-  friend Vector operator/(Vector x, const double &a) {
-    for (int i = 0; i < static_cast<int>(x.size()); i++)
-      x.m_eles[i] /= a;
-    return x;
-  }
-  friend Vector operator/(const double &a, Vector x) {
-    for (int i = 0; i < static_cast<int>(x.size()); i++)
-      x.m_eles[i] = a / x.m_eles[i];
-    return x;
-  }
+  /**
+   * @brief Égalité élément par élément, à PRECISION près (voir approx_equal)
+   *
+   * Deux vecteurs de tailles différentes ne sont pas égaux : renvoie false,
+   * comme std::vector et np.array_equal.
+   */
+  bool operator==(const Vector &x) const;
 
-  friend Vector operator*(Vector x, const double &a) {
-    for (int i = 0; i < static_cast<int>(x.size()); i++)
-      x.m_eles[i] *= a;
-    return x;
-  }
-  friend Vector operator*(const double &a, Vector x) { return x * a; }
+  /// Affiche {1, 2.5, -3}
+  friend std::ostream &operator<<(std::ostream &os, const Vector &v);
 
-  bool operator==(const Vector &a) const {
-    if (this->size() != a.size())
-      throw std::invalid_argument(
-          "Les deux vecteurs ne sont pas de la même taille");
-    for (int i = 0; i < static_cast<int>(a.size()); i++)
-      if (std::fabs(a.m_eles[i] - this->m_eles[i]) >= 1e-9)
-        return false;
-    return true;
-  }
+  // ========================================================================
+  // Modification de la taille
+  // ========================================================================
 
-  friend std::ostream &operator<<(std::ostream &os, const Vector &v) {
-    os << "{";
-    for (double eles : v.m_eles)
-      os << eles << ",";
+  /**
+   * @brief Ajoute val à la fin du vecteur (la taille augmente de 1)
+   *
+   * Peut réallouer le tableau interne : tout itérateur, pointeur ou référence
+   * obtenu avant l'appel (par begin(), end() ou operator[]) devient invalide.
+   * Ne pas l'appeler pendant une boucle `for (double x : v)` sur ce vecteur.
+   */
+  void ajouter(double val) { m_eles.push_back(val); }
 
-    os << "}";
-    return os;
-  }
-  double &operator[](int index) {
-    if (index < 0 || index >= static_cast<int>(m_eles.size()))
-      throw std::invalid_argument("L'index est introuvable dans le vecteur");
-    return m_eles[index];
-  }
-  double operator[](int index) const {
-    if (index < 0 || index >= static_cast<int>(m_eles.size()))
-      throw std::invalid_argument("L'index est introuvable dans le vecteur");
-    return m_eles[index];
-  }
-  size_t size(void) const;
+  // ========================================================================
+  // Itérateurs
+  // ========================================================================
+
+  using iterator = std::vector<double>::iterator;
+  using const_iterator = std::vector<double>::const_iterator;
+
+  /**
+   * @brief Parcours des éléments du premier au dernier
+   *
+   * Permet `for (double x : v)` et les algorithmes standard
+   * (std::accumulate, std::max_element…). Invalidés par ajouter().
+   */
+  iterator begin() { return m_eles.begin(); }
+  iterator end() { return m_eles.end(); }
+  const_iterator begin() const { return m_eles.begin(); }
+  const_iterator end() const { return m_eles.end(); }
 
 private:
+  /// La seule vérification de taille de la classe
+  /// @throw std::invalid_argument si x n'a pas la même taille que *this
+  void verifierMemeTaille(const Vector &x) const;
+  /// @throw std::out_of_range si index n'est pas dans [0, size())
+  void verifierIndex(int index) const;
+
   std::vector<double> m_eles;
 };
 

@@ -1,5 +1,8 @@
 #include "mnp/Linalg.hpp"
+#include <algorithm>
 #include <cmath>
+#include <iterator>
+#include <numeric>
 #include <numbers>
 #include <sstream>
 #include <stdexcept>
@@ -43,8 +46,9 @@ TEST_CASE("Vérifications des opérations vectorielles : produit scalaire, "
   mnp::Vector v({1, 2, 2});
   mnp::Vector w({1, 2});
   CHECK_MESSAGE((u * v) == mnp::Vector({3, 0, 8}),
-                "Le produit scalaire n'est pas correct");
-  CHECK_MESSAGE((u * v) == (v * u), "Le produit scalaire n'est pas correct");
+                "Le produit élément par élément n'est pas correct");
+  CHECK_MESSAGE((u * v) == (v * u),
+                "Le produit élément par élément doit être commutatif");
   CHECK_MESSAGE((2.0 * u) == mnp::Vector({6, 0, 8}),
                 "La produit par scalaire n'est pas correct");
   CHECK_MESSAGE((u * 2.0) == (2.0 * u),
@@ -56,14 +60,25 @@ TEST_CASE("Vérifications des opérations vectorielles : produit scalaire, "
                 "La normalisation n'est pas correcte");
   CHECK_MESSAGE((u.normalisation().norme()) == 1.0f,
                 "La normalisation n'est pas correct");
-  double normes_mult = u.norme() * v.norme();
-  double angle = u.scalaire_analytique(v) / (normes_mult);
-  CHECK_MESSAGE((normes_mult * std::acos(angle)) ==
-                    doctest::Approx(11.21383518f).epsilon(1e-5),
+  // cos θ = u·v / (‖u‖‖v‖) = 11 / (5 × 3)
+  CHECK_MESSAGE(u.angle(v) == doctest::Approx(std::acos(11.0 / 15.0)),
                 "L'angle n'est pas correct");
-  CHECK_MESSAGE(((std::acos(angle)) >= 0.0f), "L'angle n'est pas correct");
-  CHECK_MESSAGE(((std::acos(angle)) <= std::numbers::pi),
-                "L'angle n'est pas correct");
+  CHECK(u.angle(v) == doctest::Approx(v.angle(u)));
+}
+
+TEST_CASE("Vecteur : angle, cas limites") {
+  mnp::Vector e1({1, 0});
+  mnp::Vector e2({0, 1});
+  CHECK(e1.angle(e2) == doctest::Approx(std::numbers::pi / 2));
+  CHECK(e1.angle(-e1) == doctest::Approx(std::numbers::pi));
+  // Colinéaires : cos θ peut dépasser 1 à cause des arrondis, acos donnerait
+  // NaN
+  mnp::Vector u({0.1, 0.2, 0.3});
+  CHECK_FALSE(std::isnan(u.angle(u * 3.0)));
+  CHECK(u.angle(u * 3.0) == doctest::Approx(0.0));
+  mnp::Vector nul({0, 0});
+  CHECK_THROWS_AS(e1.angle(nul), std::invalid_argument);
+  CHECK(e1.scalaire_geometrique(nul) == 0.0);
 }
 
 TEST_CASE("Vecteur : taille et accès [i]") {
@@ -73,12 +88,12 @@ TEST_CASE("Vecteur : taille et accès [i]") {
   CHECK(u[2] == 4);
   u[1] = 7;
   CHECK_MESSAGE(u == mnp::Vector({3, 7, 4}), "u[1] = 7 doit modifier u");
-  CHECK_THROWS_AS(u[-1], std::invalid_argument);
-  CHECK_THROWS_AS(u[3], std::invalid_argument);
+  CHECK_THROWS_AS(u[-1], std::out_of_range);
+  CHECK_THROWS_AS(u[3], std::out_of_range);
 
   const mnp::Vector cu({1, 2});
   CHECK(cu[1] == 2);
-  CHECK_THROWS_AS(cu[2], std::invalid_argument);
+  CHECK_THROWS_AS(cu[2], std::out_of_range);
 }
 
 TEST_CASE("Vecteur : tailles incompatibles") {
@@ -88,7 +103,8 @@ TEST_CASE("Vecteur : tailles incompatibles") {
   CHECK_THROWS_AS(u * w, std::invalid_argument);
   CHECK_THROWS_AS(u += w, std::invalid_argument);
   CHECK_THROWS_AS(u -= w, std::invalid_argument);
-  CHECK_THROWS_AS((void)(u == w), std::invalid_argument);
+  CHECK_FALSE_MESSAGE(u == w,
+                      "Deux tailles différentes : pas égaux, sans exception");
   CHECK_THROWS_AS(u.scalaire_analytique(w), std::invalid_argument);
   CHECK_THROWS_AS(u.scalaire_geometrique(w), std::invalid_argument);
 }
@@ -150,7 +166,10 @@ TEST_CASE("Vecteur : norme et normalisation, cas limites") {
 TEST_CASE("Vecteur : affichage <<") {
   std::ostringstream os;
   os << mnp::Vector({1, 2.5, -3});
-  CHECK(os.str() == "{1,2.5,-3,}");
+  CHECK(os.str() == "{1, 2.5, -3}");
+  std::ostringstream vide;
+  vide << mnp::Vector({});
+  CHECK(vide.str() == "{}");
 }
 
 TEST_CASE("Vérifications des matrices") {
@@ -161,7 +180,7 @@ TEST_CASE("Vérifications des matrices") {
     a(0, 0) = 1;
     c(0, 0) = 1;
     CHECK_MESSAGE(a == c, "Le remplissage de matrices ne fonctionnes pas");
-    CHECK_THROWS_AS(a == b, std::invalid_argument);
+    CHECK((a == b) == false);
   }
 }
 
@@ -229,14 +248,14 @@ TEST_CASE("Matrice : accès (i, j) et bornes") {
   CHECK_MESSAGE(m(0, 0) == 0.0,
                 "Écrire en (1,2) ne doit rien changer ailleurs");
 
-  CHECK_THROWS_AS(m(-1, 0), std::invalid_argument);
-  CHECK_THROWS_AS(m(0, -1), std::invalid_argument);
-  CHECK_THROWS_AS(m(2, 0), std::invalid_argument);
-  CHECK_THROWS_AS(m(0, 3), std::invalid_argument);
+  CHECK_THROWS_AS(m.at(-1, 0), std::invalid_argument);
+  CHECK_THROWS_AS(m.at(0, -1), std::invalid_argument);
+  CHECK_THROWS_AS(m.at(2, 0), std::invalid_argument);
+  CHECK_THROWS_AS(m.at(0, 3), std::invalid_argument);
 
   const mnp::Matrix &cm = m;
   CHECK(cm(1, 2) == 7.5);
-  CHECK_THROWS_AS(cm(2, 3), std::invalid_argument);
+  CHECK_THROWS_AS(cm.at(2, 3), std::invalid_argument);
 }
 
 TEST_CASE("Matrice : égalité") {
@@ -247,10 +266,10 @@ TEST_CASE("Matrice : égalité") {
   CHECK_FALSE(a == c);
   b(0, 0) += 1e-12;
   CHECK_MESSAGE(a == b, "L'égalité doit tolérer un écart < PRECISION");
-  CHECK_THROWS_AS(a == mnp::Matrix(2, 3), std::invalid_argument);
+  CHECK((a == mnp::Matrix(2, 3)) == false);
 }
 
-TEST_CASE("Matrice : identité, isSquare, isIndentity") {
+TEST_CASE("Matrice : identité, isSquare, isIdentity") {
   mnp::Matrix i3 = mnp::Matrix::identity(3);
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
@@ -259,12 +278,12 @@ TEST_CASE("Matrice : identité, isSquare, isIndentity") {
   CHECK(i3.isSquare());
   CHECK_FALSE(mnp::Matrix(2, 3).isSquare());
 
-  CHECK(i3.isIndentity());
-  CHECK_FALSE(mnp::Matrix(3, 3).isIndentity());
-  CHECK_FALSE(mnp::Matrix(2, 3).isIndentity());
+  CHECK(i3.isIdentity());
+  CHECK_FALSE(mnp::Matrix(3, 3).isIdentity());
+  CHECK_FALSE(mnp::Matrix(2, 3).isIdentity());
   mnp::Matrix presque = mnp::Matrix::identity(3);
   presque(0, 2) = 0.5;
-  CHECK_FALSE(presque.isIndentity());
+  CHECK_FALSE(presque.isIdentity());
 }
 
 TEST_CASE("Matrice : isZero") {
@@ -564,7 +583,7 @@ TEST_CASE("Matrice : cas limites 1x1 et 1xn") {
     CHECK(trois * mnp::Matrix({{4}}) == mnp::Matrix({{12}}));
     CHECK(trois.transpose() == trois);
     CHECK(mnp::Matrix::identity(1) == mnp::Matrix({{1}}));
-    CHECK(mnp::Matrix::identity(1).isIndentity());
+    CHECK(mnp::Matrix::identity(1).isIdentity());
     CHECK(trois * mnp::Matrix::identity(1) == trois);
     CHECK(trois * std::vector<double>{2} == mnp::Matrix({{6}}));
   }
@@ -591,4 +610,111 @@ TEST_CASE("Systemes lineaires") {
   CHECK(x[0] == doctest::Approx(2));
   CHECK(x[1] == doctest::Approx(3));
   CHECK(x[2] == doctest::Approx(-1));
+}
+
+TEST_CASE("approx_equal : tolérance relative") {
+  CHECK(mnp::approx_equal(1.0, 1.0 + 1e-12));
+  CHECK_FALSE(mnp::approx_equal(1.0, 1.0 + 1e-6));
+  CHECK(mnp::approx_equal(0.0, 1e-12));
+  // En absolu, 1e12 et 1e12 + 1 diffèrent de 1 >> 1e-9 ; en relatif, égaux
+  CHECK(mnp::approx_equal(1e12, 1e12 + 1));
+  CHECK(mnp::Vector({1e12}) == mnp::Vector({1e12 + 1}));
+}
+
+TEST_CASE("Vecteur : opérateurs composés *= et /=") {
+  mnp::Vector u({3, 0, 4});
+  u *= 2.0;
+  CHECK(u == mnp::Vector({6, 0, 8}));
+  u /= 2.0;
+  CHECK(u == mnp::Vector({3, 0, 4}));
+  u *= mnp::Vector({1, 2, 3});
+  CHECK(u == mnp::Vector({3, 0, 12}));
+  CHECK_THROWS_AS(u *= mnp::Vector({1, 2}), std::invalid_argument);
+}
+
+// ==========================================================================
+// Itérateurs
+// ==========================================================================
+
+TEST_CASE("Vecteur : itérateurs et boucle for") {
+  mnp::Vector u({3, 0, 4});
+
+  double somme = 0.0;
+  for (double x : u)
+    somme += x;
+  CHECK(somme == doctest::Approx(7.0));
+
+  CHECK(std::distance(u.begin(), u.end()) == 3);
+  CHECK(*u.begin() == 3);
+  CHECK(*std::max_element(u.begin(), u.end()) == 4);
+  CHECK(std::accumulate(u.begin(), u.end(), 0.0) == doctest::Approx(7.0));
+
+  SUBCASE("Modifier les éléments par référence") {
+    for (double &x : u)
+      x *= 2;
+    CHECK(u == mnp::Vector({6, 0, 8}));
+  }
+
+  SUBCASE("Un algorithme standard qui écrit dans le vecteur") {
+    std::fill(u.begin(), u.end(), 1.0);
+    CHECK(u == mnp::Vector({1, 1, 1}));
+  }
+}
+
+TEST_CASE("Vecteur : itérateurs sur un vecteur const ou vide") {
+  const mnp::Vector cu({1, 2, 2});
+  double somme = 0.0;
+  for (double x : cu)
+    somme += x;
+  CHECK(somme == doctest::Approx(5.0));
+  CHECK(std::count(cu.begin(), cu.end(), 2.0) == 2);
+
+  const mnp::Vector vide({});
+  CHECK(vide.begin() == vide.end());
+}
+
+TEST_CASE("Matrice : itérateurs, ordre du stockage par lignes") {
+  mnp::Matrix m({{1, 2, 3}, {4, 5, 6}});
+
+  // Le parcours suit le stockage à plat : la ligne 0, puis la ligne 1
+  std::vector<double> lus(m.begin(), m.end());
+  CHECK(lus == std::vector<double>({1, 2, 3, 4, 5, 6}));
+  CHECK(std::distance(m.begin(), m.end()) == m.nbLignes() * m.nbColonne());
+  CHECK(std::accumulate(m.begin(), m.end(), 0.0) == doctest::Approx(21.0));
+
+  SUBCASE("Modifier les éléments par référence") {
+    for (double &x : m)
+      x = -x;
+    CHECK(m == mnp::Matrix({{-1, -2, -3}, {-4, -5, -6}}));
+  }
+}
+
+TEST_CASE("Matrice : itérateurs sur une matrice const") {
+  const mnp::Matrix id = mnp::Matrix::identity(3);
+  CHECK(std::count(id.begin(), id.end(), 1.0) == 3);
+  CHECK(std::count(id.begin(), id.end(), 0.0) == 6);
+  CHECK(std::all_of(id.begin(), id.end(),
+                    [](double x) { return x == 0.0 || x == 1.0; }));
+
+  const mnp::Matrix nulle(2, 2);
+  CHECK(std::all_of(nulle.begin(), nulle.end(),
+                    [](double x) { return x == 0.0; }));
+}
+
+TEST_CASE("Vecteur : ajouter") {
+  mnp::Vector u({3, 0});
+  u.ajouter(4);
+  CHECK(u.size() == 3);
+  CHECK(u == mnp::Vector({3, 0, 4}));
+  CHECK(u.norme() == doctest::Approx(5.0));
+
+  mnp::Vector vide({});
+  vide.ajouter(1.5);
+  CHECK(vide == mnp::Vector({1.5}));
+
+  // Après ajouter(), on reprend des itérateurs neufs : les anciens sont invalides
+  double somme = 0.0;
+  for (double x : u)
+    somme += x;
+  CHECK(somme == doctest::Approx(7.0));
 }

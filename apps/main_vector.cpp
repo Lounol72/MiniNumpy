@@ -1,6 +1,5 @@
 // Étape 1 : angle entre deux vecteurs avec mnp::Vector.
 // À comparer avec le calcul à la main de la section 1 du guide.
-#include <cmath>
 #include <iostream>
 #include <numbers>
 
@@ -12,7 +11,7 @@ int main() {
 
   double produit = u.scalaire_analytique(v);
   double cos_theta = produit / (u.norme() * v.norme());
-  double theta = std::acos(cos_theta);
+  double theta = u.angle(v);
 
   std::cout << "u = " << u << "\n";
   std::cout << "v = " << v << "\n";

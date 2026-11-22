@@ -3,7 +3,8 @@
 #include <ostream>
 #include <vector>
 
-#define PRECISION 1e-9
+#include "mnp/Precision.hpp"
+#include "mnp/Vector.hpp"
 
 namespace mnp {
 
@@ -44,15 +45,17 @@ public:
   /// Vrai si tous les éléments sont nuls (à PRECISION près)
   bool isZero() const;
   /// Vrai si la matrice est l'identité (à PRECISION près)
-  bool isIndentity() const;
+  bool isIdentity() const;
 
   /// Transposée : (i, j) → (j, i)
   Matrix transpose() const;
 
+  Matrix &ajouterColonne(const mnp::Vector v);
+  Matrix &ajouterLigne(const mnp::Vector v);
   int nbLignes() const { return ligne; }
   int nbColonne() const { return colonne; }
   std::vector<double> getLigne(int index) const;
-  std::vector<double> getCol(int index) const;
+  std::vector<double> getColonne(int index) const;
 
   // ========================================================================
   // Accès aux éléments
@@ -60,10 +63,17 @@ public:
 
   /**
    * @brief Élément (i, j)
+   * @return double
+   */
+  double &operator()(int i, int j) { return m_values[idx(i, j)]; }
+  const double &operator()(int i, int j) const { return m_values[idx(i, j)]; }
+
+  /**
+   * @brief Élément (i, j)
    * @throw std::invalid_argument si (i, j) est hors de la matrice
    */
-  double &operator()(int i, int j);
-  const double &operator()(int i, int j) const;
+  double &at(int i, int j);
+  const double &at(int i, int j) const;
 
   // ========================================================================
   // Opérateurs
@@ -110,12 +120,36 @@ public:
    */
   friend std::ostream &operator<<(std::ostream &out, const Matrix &m);
 
+  // ========================================================================
+  // Itérateurs
+  // ========================================================================
+
+  using iterator = std::vector<double>::iterator;
+  using const_iterator = std::vector<double>::const_iterator;
+
+  /**
+   * @brief Parcours de tous les éléments, dans l'ordre du stockage par lignes
+   *
+   * (0,0), (0,1), …, (0,n-1), puis (1,0), … : pour [[1, 2, 3], [4, 5, 6]], la
+   * boucle `for (double x : m)` lit 1, 2, 3, 4, 5, 6. Ce n'est pas le choix de
+   * NumPy, où `for ligne in A` parcourt les lignes. Cet ordre fait partie du
+   * contrat (il est testé) : changer de stockage le changerait.
+   *
+   * Les itérateurs restent valides tant que la taille de la matrice ne change
+   * pas. Une affectation `m = autre` les invalide (le tableau est remplacé),
+   * de même que tout ajout de ligne ou de colonne.
+   */
+  iterator begin() { return m_values.begin(); }
+  iterator end() { return m_values.end(); }
+  const_iterator begin() const { return m_values.begin(); }
+  const_iterator end() const { return m_values.end(); }
+
 private:
   /// Position de l'élément (i, j) dans m_values (rangement par lignes)
   int idx(int i, int j) const { return i * colonne + j; }
 
-  const int ligne;
-  const int colonne;
+  int ligne;
+  int colonne;
   std::vector<double> m_values;
 };
 

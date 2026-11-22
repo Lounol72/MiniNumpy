@@ -49,7 +49,7 @@ bool Matrix::isZero() const {
                      [](double x) { return std::fabs(x) < PRECISION; });
 }
 
-bool Matrix::isIndentity() const {
+bool Matrix::isIdentity() const {
   if (!isSquare())
     return false;
 
@@ -74,13 +74,21 @@ Matrix Matrix::transpose() const {
 // Accès aux éléments
 // ==========================================================================
 
-double &Matrix::operator()(int i, int j) {
+Matrix &Matrix::ajouterColonne(const mnp::Vector v) {
+  if (static_cast<int>(v.size()) != ligne)
+    throw std::invalid_argument("Error: cannot add column if not same size");
+}
+Matrix &Matrix::ajouterLigne(const mnp::Vector v) {
+  if (static_cast<int>(v.size()) != colonne)
+    throw std::invalid_argument("Error: cannot add line if not same size");
+}
+
+double &Matrix::at(int i, int j) {
   if (i < 0 || i >= ligne || j < 0 || j >= colonne)
     throw std::invalid_argument("Error: invalid index not in matrix");
   return m_values[idx(i, j)];
 }
-
-const double &Matrix::operator()(int i, int j) const {
+const double &Matrix::at(int i, int j) const {
   if (i < 0 || i >= ligne || j < 0 || j >= colonne)
     throw std::invalid_argument("Error: invalid index not in matrix");
   return m_values[idx(i, j)];
@@ -90,11 +98,11 @@ std::vector<double> Matrix::getLigne(int index) const {
   if (index < 0 || index >= ligne)
     throw std::out_of_range("Error: invalid index <" + std::to_string(index) +
                             "> doesn't exist");
-  auto debut = m_values.begin() + idx(index,0);
-  return { debut, debut + colonne};
+  auto debut = m_values.begin() + idx(index, 0);
+  return {debut, debut + colonne};
 }
 
-std::vector<double> Matrix::getCol(int index) const {
+std::vector<double> Matrix::getColonne(int index) const {
   if (index < 0 || index >= colonne)
     throw std::out_of_range("Error: invalid index <" + std::to_string(index) +
                             "> doesn't exist");
@@ -178,8 +186,7 @@ Matrix Matrix::operator-() const {
 
 bool Matrix::operator==(const Matrix &m) const {
   if (ligne != m.ligne || colonne != m.colonne)
-    throw std::invalid_argument(
-        "Error: Cannot compare 2 matrices of different size");
+    return false;
   for (std::size_t k = 0; k < m_values.size(); k++)
     if (std::fabs(m_values[k] - m.m_values[k]) >= PRECISION)
       return false;
