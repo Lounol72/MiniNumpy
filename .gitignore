@@ -1,4 +1,6 @@
 build/
+build-release/
+scripts
 *.o
 *.d
 *.a
