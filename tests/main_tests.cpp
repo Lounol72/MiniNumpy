@@ -631,8 +631,9 @@ TEST_CASE("Systemes lineaires : pivot partiel") {
   }
 
   SUBCASE("pivotDeGauss : les lignes sont échangées, résultat triangulaire") {
-    CHECK(mnp::pivotDeGauss(mnp::Matrix({{0, 1}, {1, 1}})) ==
-          mnp::Matrix({{1, 1}, {0, 1}}));
+    mnp::Matrix m({{0, 1}, {1, 1}});
+    mnp::pivotDeGauss(m); // sur place
+    CHECK(m == mnp::Matrix({{1, 1}, {0, 1}}));
   }
 }
 

@@ -1,9 +1,9 @@
 #include "mnp/Linalg.hpp"
 #include "mnp/Matrix.hpp"
-#include <stdexcept>
-#include <vector>
 #include <cmath>
+#include <stdexcept>
 #include <utility>
+#include <vector>
 
 std::vector<double> mnp::solve(const mnp::Matrix &m,
                                const std::vector<double> &v) {
@@ -14,14 +14,13 @@ std::vector<double> mnp::solve(const mnp::Matrix &m,
   m_x.ajouterColonne(mnp::Vector(v));
 
   // Pivot de Gauss sur la matrice m_x
-  m_x = mnp::pivotDeGauss(m_x);
+  mnp::pivotDeGauss(m_x);
 
   // La remontée
   return mnp::remontee(m_x);
 }
 
-mnp::Matrix mnp::pivotDeGauss(const mnp::Matrix &m) {
-  mnp::Matrix m_x = m;
+void mnp::pivotDeGauss(mnp::Matrix &m_x) {
   for (int i = 0; i < m_x.nbLignes(); i++) {
     int lignePivot = i;
     double pivot = m_x(i, i);
@@ -40,7 +39,8 @@ mnp::Matrix mnp::pivotDeGauss(const mnp::Matrix &m) {
     // Vérification de matrice singulière
     if (approx_equal(pivot, 0)) {
       throw std::domain_error(
-          "Matrice Singulière : pas de pivot non nul en colonne <" + std::to_string(i) + ">");
+          "Matrice Singulière : pas de pivot non nul en colonne <" +
+          std::to_string(i) + ">");
     }
     for (int y = i + 1; y < m_x.nbLignes(); y++) {
       double facteur = (m_x(y, i) / pivot);
@@ -48,7 +48,6 @@ mnp::Matrix mnp::pivotDeGauss(const mnp::Matrix &m) {
         m_x(y, j) = m_x(y, j) - (facteur * m_x(i, j));
     }
   }
-  return m_x;
 }
 
 std::vector<double> mnp::remontee(const mnp::Matrix &m) {
