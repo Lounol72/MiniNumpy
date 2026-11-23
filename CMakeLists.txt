@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 4.0)
 project(MiniNumpy LANGUAGES CXX)
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Type de build : Debug ou Release" FORCE)
-endif()
 
 enable_testing()
+#==========================================================
 # OPTIONS de compilations
+#==========================================================
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Type de build : Debug ou Release"
+      FORCE)
+endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -19,7 +23,10 @@ add_link_options(
   "$<$<CONFIG:Debug>:-fsanitize=address,undefined>"
 )
 
-#FICHIERS
+#==========================================================
+# Variables et librairies
+#==========================================================
+
 file(GLOB SRCS CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB EXECS CONFIGURE_DEPENDS "apps/*.cpp")
 file(GLOB TESTS CONFIGURE_DEPENDS "tests/*.cpp")
@@ -29,6 +36,10 @@ target_include_directories(mnp PUBLIC include)
 
 add_library(doctest INTERFACE)
 target_include_directories(doctest INTERFACE third_party)
+
+#==========================================================
+# Boucles de compilation
+#==========================================================
 
 foreach(FICHIER IN LISTS EXECS)
   get_filename_component(EXEC ${FICHIER} NAME_WE)
