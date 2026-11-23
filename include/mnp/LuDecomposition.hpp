@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mnp/Matrix.hpp"
+#include <vector>
 namespace mnp {
 
 class LuDecomposition {
@@ -25,15 +26,16 @@ LuDecomposition(const mnp::Matrix m) : mat(m.nbLignes(), m.nbColonne()) {
       // Vérification de matrice singulière
       if (approx_equal(pivot, 0)) {
         singuliere = true;
+        continue;
       }
       for (int y = i + 1; y < m_x.nbLignes(); y++) {
         double facteur = (m_x(y, i) / pivot);
-        mat(y,i) = facteur;
         for (int j = i; j < m_x.nbColonne(); j++)
           m_x(y, j) = m_x(y, j) - (facteur * m_x(i, j));
+        m_x(y,i) = facteur;
       }
     }
-    mat +=m_x;
+    mat =m_x;
   }
 
   LuDecomposition(const LuDecomposition &) = default;
@@ -43,6 +45,7 @@ LuDecomposition(const mnp::Matrix m) : mat(m.nbLignes(), m.nbColonne()) {
 
 private:
   mnp::Matrix mat;
+  std::vector<int> p;
   bool singuliere = false;
 };
 } // namespace mnp

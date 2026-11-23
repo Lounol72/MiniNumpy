@@ -1,5 +1,6 @@
 #include "mnp/Linalg.hpp"
 #include "mnp/Matrix.hpp"
+#include "mnp/Precision.hpp"
 #include <cmath>
 #include <stdexcept>
 #include <utility>

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mnp/Matrix.hpp"
-#include "mnp/Precision.hpp"
 #include <vector>
 
 namespace mnp {
