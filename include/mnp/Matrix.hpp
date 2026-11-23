@@ -76,6 +76,8 @@ public:
   std::vector<double> getLigne(int index) const;
   std::vector<double> getColonne(int index) const;
 
+  double determinant()const;
+
   // ========================================================================
   // Accès aux éléments
   // ========================================================================

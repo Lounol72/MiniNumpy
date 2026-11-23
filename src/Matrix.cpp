@@ -87,7 +87,8 @@ Matrix &Matrix::ajouterColonne(const mnp::Vector &v) {
   // Sa destination n'est jamais avant sa source, donc en parcourant de la
   // fin vers le début, on n'écrase jamais un élément pas encore déplacé.
   for (int i = ligne - 1; i >= 0; i--) {
-    m_values[i * nouvelles + colonne] = v[i]; // la nouvelle case, en fin de ligne
+    m_values[i * nouvelles + colonne] =
+        v[i]; // la nouvelle case, en fin de ligne
     for (int j = colonne - 1; j >= 0; j--)
       m_values[i * nouvelles + j] = m_values[idx(i, j)]; // idx : ancien colonne
   }
@@ -104,6 +105,10 @@ Matrix &Matrix::ajouterLigne(const mnp::Vector &v) {
   ligne++;
   return *this;
 }
+
+double Matrix::determinant() const {
+  // TODO: Utiliser le pivot de gauss pour obtenir le déterminant
+  return 0.0; }
 
 double &Matrix::at(int i, int j) {
   if (i < 0 || i >= ligne || j < 0 || j >= colonne)

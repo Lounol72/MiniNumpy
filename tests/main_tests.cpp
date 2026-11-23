@@ -613,6 +613,53 @@ TEST_CASE("Systemes lineaires") {
   CHECK(x[2] == doctest::Approx(-1));
 }
 
+TEST_CASE("Systemes lineaires : pivot partiel") {
+  SUBCASE("pivot nul en (0, 0) : échange de lignes obligatoire") {
+    // 0x + y = 1 ; x + y = 2  ->  x = 1, y = 1
+    const auto x = mnp::solve(mnp::Matrix({{0, 1}, {1, 1}}), {1, 2});
+    REQUIRE(x.size() == 2);
+    CHECK(x[0] == doctest::Approx(1));
+    CHECK(x[1] == doctest::Approx(1));
+  }
+
+  SUBCASE("meilleur pivot négatif : comparaison en valeur absolue") {
+    // 0x + 2y = 4 ; -3x + y = -1  ->  x = 1, y = 2
+    const auto x = mnp::solve(mnp::Matrix({{0, 2}, {-3, 1}}), {4, -1});
+    REQUIRE(x.size() == 2);
+    CHECK(x[0] == doctest::Approx(1));
+    CHECK(x[1] == doctest::Approx(2));
+  }
+
+  SUBCASE("pivotDeGauss : les lignes sont échangées, résultat triangulaire") {
+    CHECK(mnp::pivotDeGauss(mnp::Matrix({{0, 1}, {1, 1}})) ==
+          mnp::Matrix({{1, 1}, {0, 1}}));
+  }
+}
+
+TEST_CASE("Systemes lineaires : erreurs") {
+  SUBCASE("matrice singulière 2x2 (L2 = 2 L1)") {
+    CHECK_THROWS_AS(mnp::solve(mnp::Matrix({{1, 2}, {2, 4}}), {1, 2}),
+                    std::domain_error);
+  }
+
+  SUBCASE("matrice singulière 3x3 : dernier pivot ~1e-16, pas exactement 0") {
+    const mnp::Matrix m({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    CHECK_THROWS_AS(mnp::solve(m, {1, 2, 3}), std::domain_error);
+  }
+
+  SUBCASE("colonne entièrement nulle") {
+    CHECK_THROWS_AS(mnp::solve(mnp::Matrix({{0, 1}, {0, 2}}), {1, 2}),
+                    std::domain_error);
+  }
+
+  SUBCASE("tailles incompatibles") {
+    CHECK_THROWS_AS(mnp::solve(mnp::Matrix({{1, 2}, {3, 4}}), {1, 2, 3}),
+                    std::invalid_argument);
+    CHECK_THROWS_AS(mnp::solve(mnp::Matrix({{1, 2, 3}, {4, 5, 6}}), {1, 2}),
+                    std::invalid_argument);
+  }
+}
+
 TEST_CASE("approx_equal : tolérance relative") {
   CHECK(mnp::approx_equal(1.0, 1.0 + 1e-12));
   CHECK_FALSE(mnp::approx_equal(1.0, 1.0 + 1e-6));
