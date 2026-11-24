@@ -753,13 +753,13 @@ TEST_CASE("Matrice : itérateurs sur une matrice const") {
 
 TEST_CASE("Vecteur : ajouter") {
   mnp::Vector u({3, 0});
-  u.ajouter(4);
+  u.push(4);
   CHECK(u.size() == 3);
   CHECK(u == mnp::Vector({3, 0, 4}));
   CHECK(u.norme() == doctest::Approx(5.0));
 
   mnp::Vector vide({});
-  vide.ajouter(1.5);
+  vide.push(1.5);
   CHECK(vide == mnp::Vector({1.5}));
 
   // Après ajouter(), on reprend des itérateurs neufs : les anciens sont invalides
@@ -801,13 +801,23 @@ TEST_CASE("Matrice : ajouterLigne enchaîné") {
                 "ajouterLigne doit renvoyer la matrice elle-même (*this)");
 }
 
-TEST_CASE("Matrice : ajouterLigne à partir d'une matrice vide") {
-  // Construire une matrice ligne par ligne, en partant de 0 ligne
-  mnp::Matrix m(0, 3);
-  m.ajouterLigne(mnp::Vector({1, 2, 3}));
+TEST_CASE("Matrice : construire ligne par ligne") {
+  // Pas de matrice vide : on part de la première ligne, puis on ajoute
+  mnp::Matrix m({{1, 2, 3}});
   m.ajouterLigne(mnp::Vector({4, 5, 6}));
-  CHECK(m.nbLignes() == 2);
-  CHECK(m == mnp::Matrix({{1, 2, 3}, {4, 5, 6}}));
+  m.ajouterLigne(mnp::Vector({7, 8, 9}));
+  CHECK(m.nbLignes() == 3);
+  CHECK(m == mnp::Matrix({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
+}
+
+TEST_CASE("Matrice : le vide est refusé") {
+  // Contrat : une matrice a au moins une ligne et une colonne
+  CHECK_THROWS_AS(mnp::Matrix(0, 3), std::invalid_argument);
+  CHECK_THROWS_AS(mnp::Matrix(2, 0), std::invalid_argument);
+  CHECK_THROWS_AS(mnp::Matrix(0, 0), std::invalid_argument);
+  CHECK_THROWS_AS(mnp::Matrix::zeros(0, 3), std::invalid_argument);
+  CHECK_THROWS_AS(mnp::Matrix::ones(2, 0), std::invalid_argument);
+  CHECK_THROWS_AS(mnp::Matrix::identity(0), std::invalid_argument);
 }
 
 TEST_CASE("Matrice : ajouterLigne, taille fausse") {
@@ -854,12 +864,12 @@ TEST_CASE("Matrice : ajouterColonne enchaîné") {
                 "ajouterColonne doit renvoyer la matrice elle-même (*this)");
 }
 
-TEST_CASE("Matrice : ajouterColonne à partir de 0 colonne") {
-  // Cas qui divisait par zéro dans la première version
-  mnp::Matrix m(2, 0);
-  m.ajouterColonne(mnp::Vector({1, 2}));
-  CHECK(m.nbColonne() == 1);
-  CHECK(m == mnp::Matrix({{1}, {2}}));
+TEST_CASE("Matrice : ajouterColonne à partir d'une seule colonne") {
+  // Le plus petit cas permis : colonne = 1 avant l'ajout
+  mnp::Matrix m({{1}, {2}});
+  m.ajouterColonne(mnp::Vector({3, 4}));
+  CHECK(m.nbColonne() == 2);
+  CHECK(m == mnp::Matrix({{1, 3}, {2, 4}}));
 }
 
 TEST_CASE("Matrice : ajouterColonne, taille fausse") {
@@ -1002,5 +1012,128 @@ TEST_CASE("LU : erreurs") {
   SUBCASE("b de mauvaise taille") {
     mnp::LuDecomposition lu(fabriquer({{1, 2}, {3, 4}}));
     CHECK_THROWS_AS(lu.resoudre({1, 2, 3}), std::invalid_argument);
+  }
+}
+
+TEST_CASE("LU : résolution matricielle AX = B") {
+  mnp::Matrix a = fabriquer({{1, 2, 3}, {4, 5, 6}, {7, 8, 10}});
+  mnp::LuDecomposition lu(a);
+
+  SUBCASE("chaque colonne de resoudreMatrice(B) = resoudre(b) sur cette colonne") {
+    // K = 2 ≠ n = 3 : vérifie que les boucles parcourent bien les K colonnes
+    mnp::Matrix b = fabriquer({{5, 6}, {11, 15}, {19, 25}});
+    mnp::Matrix x = lu.resoudreMatrice(b);
+    REQUIRE(x.nbLignes() == 3);
+    REQUIRE(x.nbColonne() == 2);
+    for (int k = 0; k < 2; k++) {
+      std::vector<double> colonne = lu.resoudre(
+          std::vector<double>{b(0, k), b(1, k), b(2, k)});
+      for (int i = 0; i < 3; i++) {
+        CAPTURE(i);
+        CAPTURE(k);
+        CHECK(x(i, k) == doctest::Approx(colonne[i]));
+      }
+    }
+    // solutions connues : (1, -1, 2) et (1, 1, 1)
+    CHECK(x(0, 0) == doctest::Approx(1));
+    CHECK(x(1, 0) == doctest::Approx(-1));
+    CHECK(x(2, 0) == doctest::Approx(2));
+    CHECK(x(0, 1) == doctest::Approx(1));
+    CHECK(x(1, 1) == doctest::Approx(1));
+    CHECK(x(2, 1) == doctest::Approx(1));
+  }
+
+  SUBCASE("B = I donne l'inverse : A X = I") {
+    mnp::Matrix x = lu.resoudreMatrice(mnp::Matrix::identity(3));
+    CHECK((a * x).isIdentity());
+  }
+
+  SUBCASE("B avec plus de colonnes que de lignes (K = 4 > n)") {
+    mnp::Matrix b = fabriquer({{5, 6, 1, 0}, {11, 15, 4, 0}, {19, 25, 7, 0}});
+    mnp::Matrix x = lu.resoudreMatrice(b);
+    CHECK(x(0, 2) == doctest::Approx(1)); // A·e0 = 1re colonne de A
+    CHECK(x(1, 2) == doctest::Approx(0));
+    CHECK(x(2, 2) == doctest::Approx(0));
+    CHECK(x(0, 3) == doctest::Approx(0)); // b nul → x nul
+  }
+
+  SUBCASE("erreurs") {
+    CHECK_THROWS_AS(lu.resoudreMatrice(mnp::Matrix(2, 1)), std::invalid_argument);
+    mnp::LuDecomposition singuliere(fabriquer({{1, 2}, {2, 4}}));
+    CHECK_THROWS_AS(singuliere.resoudreMatrice(mnp::Matrix(2, 1)), std::domain_error);
+  }
+}
+
+// ==========================================================
+// Fabriques statiques : zeros et ones
+// ==========================================================
+
+TEST_CASE("Vecteur : fabriques zeros et ones") {
+  SUBCASE("zeros : taille et contenu") {
+    mnp::Vector z = mnp::Vector::zeros(4);
+    CHECK(z.size() == 4);
+    CHECK(z == mnp::Vector({0, 0, 0, 0}));
+    CHECK(z.norme() == doctest::Approx(0.0));
+  }
+  SUBCASE("ones : taille et contenu") {
+    mnp::Vector u = mnp::Vector::ones(3);
+    CHECK(u.size() == 3);
+    CHECK(u == mnp::Vector({1, 1, 1}));
+    CHECK_MESSAGE(u.norme() == doctest::Approx(std::sqrt(3.0)),
+                  "‖(1, 1, 1)‖ = √3");
+  }
+  SUBCASE("le piège que la fabrique évite") {
+    // Vector({3}) est le vecteur (3), de taille 1 ;
+    // zeros(3) est le vecteur nul de taille 3
+    CHECK(mnp::Vector({3}).size() == 1);
+    CHECK(mnp::Vector::zeros(3).size() == 3);
+  }
+  SUBCASE("zeros + ones = ones") {
+    CHECK(mnp::Vector::zeros(5) + mnp::Vector::ones(5) ==
+          mnp::Vector::ones(5));
+  }
+  SUBCASE("taille négative refusée") {
+    CHECK_THROWS_AS(mnp::Vector::zeros(-1), std::invalid_argument);
+    CHECK_THROWS_AS(mnp::Vector::ones(-1), std::invalid_argument);
+  }
+}
+
+TEST_CASE("Matrice : fabriques zeros et ones") {
+  SUBCASE("zeros : dimensions et contenu") {
+    mnp::Matrix z = mnp::Matrix::zeros(2, 3);
+    CHECK(z.nbLignes() == 2);
+    CHECK(z.nbColonne() == 3);
+    CHECK(z.isZero());
+    CHECK(z == fabriquer({{0, 0, 0}, {0, 0, 0}}));
+  }
+  SUBCASE("ones : dimensions et contenu, toutes les cases") {
+    mnp::Matrix u = mnp::Matrix::ones(3, 2);
+    CHECK(u.nbLignes() == 3);
+    CHECK(u.nbColonne() == 2);
+    CHECK(u == fabriquer({{1, 1}, {1, 1}, {1, 1}}));
+    CHECK(std::all_of(u.begin(), u.end(), [](double x) { return x == 1.0; }));
+    CHECK_FALSE(u.isZero());
+  }
+  SUBCASE("zeros carrée : neutre pour l'addition, absorbante pour le produit") {
+    mnp::Matrix a = fabriquer({{1, 2}, {3, 4}});
+    CHECK(a + mnp::Matrix::zeros(2, 2) == a);
+    CHECK((a * mnp::Matrix::zeros(2, 2)).isZero());
+  }
+  SUBCASE("ones : chaque case du produit (n × k) · (k × m) vaut k") {
+    mnp::Matrix p = mnp::Matrix::ones(2, 4) * mnp::Matrix::ones(4, 3);
+    CHECK(p.nbLignes() == 2);
+    CHECK(p.nbColonne() == 3);
+    CHECK(std::all_of(p.begin(), p.end(), [](double x) { return x == 4.0; }));
+  }
+  SUBCASE("1 × 1") {
+    CHECK(mnp::Matrix::ones(1, 1) == fabriquer({{1}}));
+  }
+  SUBCASE("dimensions négatives refusées") {
+    CHECK_THROWS_AS(mnp::Matrix::zeros(-1, 3), std::invalid_argument);
+    CHECK_THROWS_AS(mnp::Matrix::zeros(2, -1), std::invalid_argument);
+    // −1 × −2 = 2 : le produit est positif, la vérification doit porter
+    // sur chaque dimension
+    CHECK_THROWS_AS(mnp::Matrix::zeros(-1, -2), std::invalid_argument);
+    CHECK_THROWS_AS(mnp::Matrix::ones(-1, -2), std::invalid_argument);
   }
 }

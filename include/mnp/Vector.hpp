@@ -16,6 +16,8 @@ public:
   /// Prend le std::vector par valeur puis le déplace : une seule copie au plus
   explicit Vector(std::vector<double> vec) : m_eles(std::move(vec)) {}
 
+  static Vector zeros(int n);
+  static Vector ones(int n);
   // ========================================================================
   // Propriétés
   // ========================================================================
@@ -117,7 +119,12 @@ public:
    * obtenu avant l'appel (par begin(), end() ou operator[]) devient invalide.
    * Ne pas l'appeler pendant une boucle `for (double x : v)` sur ce vecteur.
    */
-  void ajouter(double val) { m_eles.push_back(val); }
+  void push(double val) { m_eles.push_back(val); }
+  /**
+   * @brief pop le premier element du vecteur
+   *
+   */
+  void pop(void) { m_eles.pop_back(); }
 
   // ========================================================================
   // Itérateurs

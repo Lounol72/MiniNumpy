@@ -15,13 +15,19 @@ namespace mnp {
 // Constructeurs
 // ==========================================================================
 
-Matrix::Matrix(int i, int j) : ligne(i), colonne(j), m_values(i * j, 0.0) {}
+Matrix::Matrix(int i, int j) : ligne(i), colonne(j) {
+  if (ligne <= 0 || colonne <= 0)
+    throw std::invalid_argument("Error: empty matrix");
+  
+  m_values = std::vector<double>(ligne * colonne, 0.0);
+}
 
 Matrix::Matrix(const std::vector<std::vector<double>> &vect)
-    : ligne(vect.size()), colonne(vect.empty() ? 0 : vect[0].size()),
-      m_values(colonne * ligne, 0.0) {
-  if (ligne == 0 || colonne == 0)
+    : ligne(vect.size()), colonne(vect.empty() ? 0 : vect[0].size()){
+  if (ligne <= 0 || colonne <= 0)
     throw std::invalid_argument("Error: empty matrix");
+  
+  m_values = std::vector<double>(ligne * colonne, 0.0);
 
   for (int i = 0; i < ligne; i++) {
     if (static_cast<int>(vect[i].size()) != colonne)
@@ -36,6 +42,16 @@ Matrix Matrix::identity(int n) {
   for (int i = 0; i < n; i++)
     m.m_values[m.idx(i, i)] = 1.0;
   return m;
+}
+
+Matrix Matrix::zeros(int m, int n) {
+  Matrix mat(m, n);
+  return mat;
+}
+Matrix Matrix::ones(int m, int n) {
+  Matrix mat(m, n);
+  std::for_each(mat.begin(), mat.end(), [](double &x) { x = 1.0; });
+  return mat;
 }
 
 // ==========================================================================
@@ -108,7 +124,8 @@ Matrix &Matrix::ajouterLigne(const mnp::Vector &v) {
 
 double Matrix::determinant() const {
   // TODO: Utiliser le pivot de gauss pour obtenir le déterminant
-  return 0.0; }
+  return 0.0;
+}
 
 double &Matrix::at(int i, int j) {
   if (i < 0 || i >= ligne || j < 0 || j >= colonne)

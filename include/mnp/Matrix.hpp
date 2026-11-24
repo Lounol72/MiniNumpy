@@ -35,6 +35,14 @@ public:
    * @brief Matrice identité n × n
    */
   static Matrix identity(int n);
+  /**
+   * @brief Matrice remplie de 0 de taille m × n
+   */
+  static Matrix zeros(int m,int n);
+  /**
+   * @brief Matrice remplie de 1 de taille m × n
+   */
+  static Matrix ones(int m,int n);
 
   // ========================================================================
   // Propriétés

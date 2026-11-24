@@ -65,6 +65,7 @@ public:
   // Accesseur
   double determinant() const;
   std::vector<double> resoudre(const std::vector<double> b) const;
+  mnp::Matrix resoudreMatrice(const mnp::Matrix &b) const;
   mnp::Matrix inverse() const;
   bool estSinguliere() const { return m_singuliere; }
 

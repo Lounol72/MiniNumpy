@@ -27,6 +27,24 @@ void Vector::verifierIndex(int index) const {
                             " n'est pas dans le vecteur (taille " +
                             std::to_string(size()) + ")");
 }
+// ==========================================================================
+// Constructeurs
+// ==========================================================================
+
+Vector Vector::zeros(int n) {
+  if (n < 0)
+    throw std::invalid_argument(
+        "Un vecteur doit au minimum avoir une taille 0");
+  Vector v(std::vector<double>(n, 0.0));
+  return v;
+}
+Vector Vector::ones(int n) {
+  if (n < 0)
+    throw std::invalid_argument(
+        "Un vecteur doit au minimum avoir une taille 0");
+  Vector v(std::vector<double>(n, 1.0));
+  return v;
+}
 
 // ==========================================================================
 // Propriétés
