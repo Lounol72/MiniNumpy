@@ -11,6 +11,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "doctest/doctest.h"
+#include "mnp/LuDecomposition.hpp"
 #include "mnp/Matrix.hpp"
 #include "mnp/Vector.hpp"
 #include "mnp/version.hpp"
@@ -933,4 +934,73 @@ TEST_CASE("Matrice : affectation dans un std::vector<Matrix>") {
   std::swap(x, y);
   CHECK(x.nbLignes() == 3);
   CHECK(y.isIdentity());
+}
+
+// ==========================================================
+// LuDecomposition : résolution de Ax = b
+// ==========================================================
+
+namespace {
+void verifier_solution(const std::vector<double> &obtenu,
+                       const std::vector<double> &attendu) {
+  REQUIRE(obtenu.size() == attendu.size());
+  for (size_t i = 0; i < attendu.size(); i++) {
+    CAPTURE(i);
+    CHECK(obtenu[i] == doctest::Approx(attendu[i]));
+  }
+}
+} // namespace
+
+TEST_CASE("LU : résolution 2x2 avec échange de lignes obligatoire") {
+  // Pivot nul en (0,0) : le pivot partiel doit échanger les lignes,
+  // donc b doit être permuté avant la descente.
+  mnp::LuDecomposition lu(fabriquer({{0, 1}, {1, 1}}));
+  CHECK_FALSE(lu.estSinguliere());
+  verifier_solution(lu.resoudre({1, 2}), {1, 1});
+}
+
+TEST_CASE("LU : résolution 3x3 sans échange, diagonale de U différente de 1") {
+  // Le plus grand pivot est déjà sur la diagonale à chaque étape :
+  // teste la descente (pas de division) et la remontée (division par U(i,i)).
+  mnp::LuDecomposition lu(fabriquer({{4, 1, 2}, {1, 5, 1}, {2, 1, 6}}));
+  verifier_solution(lu.resoudre({12, 14, 22}), {1, 2, 3});
+}
+
+TEST_CASE("LU : résolution 3x3 avec plusieurs échanges") {
+  mnp::LuDecomposition lu(fabriquer({{1, 2, 3}, {4, 5, 6}, {7, 8, 10}}));
+  verifier_solution(lu.resoudre({5, 11, 19}), {1, -1, 2});
+}
+
+TEST_CASE("LU : identité, la solution est b") {
+  mnp::LuDecomposition lu(mnp::Matrix::identity(3));
+  verifier_solution(lu.resoudre({7, -2, 0.5}), {7, -2, 0.5});
+}
+
+TEST_CASE("LU : A x retrouve b") {
+  mnp::Matrix a = fabriquer({{2, -1, 0}, {-1, 2, -1}, {0, -1, 2}});
+  std::vector<double> b = {1, 0, 1};
+  std::vector<double> x = mnp::LuDecomposition(a).resoudre(b);
+  for (int i = 0; i < 3; i++) {
+    double ligne = 0;
+    for (int j = 0; j < 3; j++)
+      ligne += a(i, j) * x[j];
+    CAPTURE(i);
+    CHECK(ligne == doctest::Approx(b[i]));
+  }
+}
+
+TEST_CASE("LU : erreurs") {
+  SUBCASE("matrice non carrée") {
+    CHECK_THROWS_AS(mnp::LuDecomposition(fabriquer({{1, 2, 3}, {4, 5, 6}})),
+                    std::invalid_argument);
+  }
+  SUBCASE("matrice singulière") {
+    mnp::LuDecomposition lu(fabriquer({{1, 2}, {2, 4}}));
+    CHECK(lu.estSinguliere());
+    CHECK_THROWS_AS(lu.resoudre({1, 2}), std::domain_error);
+  }
+  SUBCASE("b de mauvaise taille") {
+    mnp::LuDecomposition lu(fabriquer({{1, 2}, {3, 4}}));
+    CHECK_THROWS_AS(lu.resoudre({1, 2, 3}), std::invalid_argument);
+  }
 }
