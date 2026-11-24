@@ -1,28 +1,32 @@
 #pragma once
 
 #include "mnp/Matrix.hpp"
+#include "mnp/Precision.hpp"
+#include <stdexcept>
 #include <vector>
 namespace mnp {
-
+inline const mnp::Matrix &carree(const mnp::Matrix &m) {
+  if (!m.isSquare())
+    throw std::invalid_argument("LuDecomposition : matrice non carrée");
+  return m;
+}
 class LuDecomposition {
 public:
   // Constructeur
-  LuDecomposition(const mnp::Matrix m)
-      : m_mat(m.nbLignes(), m.nbColonne()), m_p(m.nbLignes(), 0) {
-    mnp::Matrix m_x = m;
-
+  explicit LuDecomposition(const mnp::Matrix &m)
+      : m_mat(carree(m)), m_p(m.nbLignes(), 0) {
     std::for_each(m_p.begin(), m_p.end(),
                   [idx = 0](int &elem) mutable { elem = idx++; });
 
-    for (int i = 0; i < m_x.nbLignes(); i++) {
+    for (int i = 0; i < m_mat.nbLignes(); i++) {
       int lignePivot = i;
-      double pivot = m_x(i, i);
+      double pivot = m_mat(i, i);
 
       // Trouver le plus grand pivot
-      for (int y = i + 1; y < m_x.nbLignes(); y++) {
-        if (std::fabs(m_x(y, i)) > std::fabs(pivot)) {
+      for (int y = i + 1; y < m_mat.nbLignes(); y++) {
+        if (std::fabs(m_mat(y, i)) > std::fabs(pivot)) {
           lignePivot = y;
-          pivot = m_x(y, i);
+          pivot = m_mat(y, i);
         }
       }
 
@@ -30,8 +34,8 @@ public:
       if (lignePivot != i) {
         // swap lignes
         m_nbEchanges++;
-        for (int y = 0; y < m_x.nbColonne(); y++) {
-          std::swap(m_x(i, y), m_x(lignePivot, y));
+        for (int y = 0; y < m_mat.nbColonne(); y++) {
+          std::swap(m_mat(i, y), m_mat(lignePivot, y));
         }
         std::swap(m_p[i], m_p[lignePivot]);
       }
@@ -42,18 +46,17 @@ public:
         continue;
       }
       // Application du pivot avec le facteur
-      for (int y = i + 1; y < m_x.nbLignes(); y++) {
-        double facteur = (m_x(y, i) / pivot);
-        for (int j = i; j < m_x.nbColonne(); j++)
-          m_x(y, j) = m_x(y, j) - (facteur * m_x(i, j));
+      for (int y = i + 1; y < m_mat.nbLignes(); y++) {
+        double facteur = (m_mat(y, i) / pivot);
+        for (int j = i; j < m_mat.nbColonne(); j++)
+          m_mat(y, j) = m_mat(y, j) - (facteur * m_mat(i, j));
         // sauvegarde du facteur
-        m_x(y, i) = facteur;
+        m_mat(y, i) = facteur;
       }
     }
-    m_mat = m_x;
   }
 
-  // Copie 
+  // Copie
   LuDecomposition(const LuDecomposition &) = default;
   LuDecomposition(LuDecomposition &&) = default;
   LuDecomposition &operator=(const LuDecomposition &) = delete;
@@ -61,8 +64,9 @@ public:
 
   // Accesseur
   double determinant() const;
-  std::vector<double> resoudre(std::vector<double> b) const;
+  std::vector<double> resoudre(const std::vector<double> b) const;
   mnp::Matrix inverse() const;
+  bool estSinguliere() const { return m_singuliere; }
 
 private:
   mnp::Matrix m_mat;
