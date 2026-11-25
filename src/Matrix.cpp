@@ -18,15 +18,15 @@ namespace mnp {
 Matrix::Matrix(int i, int j) : ligne(i), colonne(j) {
   if (ligne <= 0 || colonne <= 0)
     throw std::invalid_argument("Error: empty matrix");
-  
+
   m_values = std::vector<double>(ligne * colonne, 0.0);
 }
 
 Matrix::Matrix(const std::vector<std::vector<double>> &vect)
-    : ligne(vect.size()), colonne(vect.empty() ? 0 : vect[0].size()){
+    : ligne(vect.size()), colonne(vect.empty() ? 0 : vect[0].size()) {
   if (ligne <= 0 || colonne <= 0)
     throw std::invalid_argument("Error: empty matrix");
-  
+
   m_values = std::vector<double>(ligne * colonne, 0.0);
 
   for (int i = 0; i < ligne; i++) {

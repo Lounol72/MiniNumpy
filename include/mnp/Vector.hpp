@@ -121,10 +121,11 @@ public:
    */
   void push(double val) { m_eles.push_back(val); }
   /**
-   * @brief pop le premier element du vecteur
+   * @brief pop le dernier element du vecteur
    *
    */
-  void pop(void) { m_eles.pop_back(); }
+  void pop(void) { if (!m_eles.empty())
+    m_eles.pop_back(); }
 
   // ========================================================================
   // Itérateurs
