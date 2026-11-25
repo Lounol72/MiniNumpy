@@ -10,10 +10,10 @@ Le projet avance par étapes. Chaque étape ajoute une notion de maths, une noti
 
 | Étape | Sujet | État |
 |---|---|---|
-| 0 | Compiler à la main, Makefile, doctest | ✅ |
-| 1 | `Vector` : norme, produit scalaire, angle | ✅ |
-| 2 | `Matrix` : opérations, produit, transposée, affichage | ✅ (relecture en cours) |
-| 3 | Systèmes linéaires : Gauss avec pivot partiel, décomposition LU | 🚧 en cours |
+| 0 | Compiler à la main, Makefile, doctest | OK |
+| 1 | `Vector` : norme, produit scalaire, angle | OK |
+| 2 | `Matrix` : opérations, produit, transposée, affichage | OK (relecture en cours) |
+| 3 | Systèmes linéaires : Gauss avec pivot partiel, décomposition LU | en cours |
 | 4 | Moindres carrés et régression | à venir |
 | 5 | Aléatoire et Monte Carlo | à venir |
 | 6 | Optimisation : descente de gradient, Newton | à venir |
